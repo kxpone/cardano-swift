@@ -24,12 +24,51 @@ public class TransactionBody {
     }
 }
 
+/// Represents an input to a Cardano transaction (UTXO reference).
+public class TransactionInput {
+    internal let pointer: RPtr
+    
+    internal init(pointer: RPtr) {
+        self.pointer = pointer
+    }
+    
+    public init(hash: Data, index: UInt32) throws {
+        let hashPtr = try hash.withUnsafeBytes { ptr in
+            try CSL.callRPtr { csl_bridge_transaction_hash_from_bytes(ptr.bindMemory(to: UInt8.self).baseAddress!, uintptr_t(hash.count), $0, $1) }
+        }
+        self.pointer = try CSL.callRPtr { csl_bridge_transaction_input_new(hashPtr, Int64(index), $0, $1) }
+        var p = hashPtr
+        csl_bridge_rptr_free(&p)
+    }
+    
+    deinit {
+        var p = pointer
+        csl_bridge_rptr_free(&p)
+    }
+}
+
 /// Represents the witness set (signatures) for a Cardano transaction.
 public class TransactionWitnessSet {
     internal let pointer: RPtr
     
     internal init(pointer: RPtr) {
         self.pointer = pointer
+    }
+    
+    public init() throws {
+        self.pointer = try CSL.callRPtr { csl_bridge_transaction_witness_set_new($0, $1) }
+    }
+    
+    public func setPlutusScripts(scripts: PlutusScripts) throws {
+        try CSL.voidCall { csl_bridge_transaction_witness_set_set_plutus_scripts(pointer, scripts.pointer, $0) }
+    }
+    
+    public func setPlutusData(data: PlutusList) throws {
+        try CSL.voidCall { csl_bridge_transaction_witness_set_set_plutus_data(pointer, data.pointer, $0) }
+    }
+    
+    public func setRedeemers(redeemers: Redeemers) throws {
+        try CSL.voidCall { csl_bridge_transaction_witness_set_set_redeemers(pointer, redeemers.pointer, $0) }
     }
     
     deinit {

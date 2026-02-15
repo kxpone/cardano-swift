@@ -150,9 +150,27 @@ rustup target add aarch64-apple-ios x86_64-apple-ios
 ```
 The build system will automatically bundle these into the framework during the installation phase.
 
+## 📚 Documentation
+
+### Guides & Resources
+
+| Document | Description |
+|----------|-------------|
+| **[Plutus Scripts Guide](./docs/PLUTUS_SCRIPTS.md)** | Complete Plutus V1/V2/V3 smart contract guide with cost analysis & examples |
+| **[CHANGELOG](./CHANGELOG.md)** | Version history and feature releases |
+
+### Quick Links
+
+- **[Cardano Docs](https://docs.cardano.org/)** - Official Cardano documentation
+- **[Plutus Docs](https://plutus.readthedocs.io/)** - Plutus smart contract reference
+- **[CIP-31 (V2)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0031)** - Plutus V2 specification
+- **[CIP-87 (V3)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0087)** - Plutus V3 specification
+
+---
+
 ## 🏁 Roadmap
 
-### 🏁 Done (v0.1.0)
+### 🏁 Done (v0.1.1)
 - [x] **Universal Linux/macOS/iOS support** via unified Rust bridge.
 - [x] **Auto-Bootstrap system** for SPM and CocoaPods.
 - [x] **Address Management**: Shelley (Bech32), Byron (Base58), Pointer addresses.
@@ -162,9 +180,9 @@ The build system will automatically bundle these into the framework during the i
 - [x] **Staking Support**: Withdrawals and reward address derivation.
 - [x] **Memory Safety**: Automated RPtr management and error handling from Rust core.
 - [x] **CIP-30 Compatibility**: Data signing and verification.
+- [x] **Plutus V1/V2/V3**: Full support for scripts, datums, and redeemers.
 
 ### 📅 To Do
-- [ ] **Plutus V1/V2/V3**: Full support for scripts, datums, and redeemers.
 - [ ] **Governance (CIP-1694)**: Support for DRep registration, voting, and delegation (Conway era).
 - [ ] **Native Scripts**: Multi-signature support (ALL, ANY, N-of-M) and time-locks.
 - [ ] **Pluggable Providers**: Protocol-based interface for easy integration with Blockfrost, Koios, or Ogmios.

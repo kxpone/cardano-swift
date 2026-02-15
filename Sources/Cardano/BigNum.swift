@@ -75,3 +75,25 @@ public class BigNum {
         return try CSL.call { csl_bridge_big_num_is_zero(self.pointer, $0, $1) }
     }
 }
+
+/// A wrapper for the Cardano serialization library's BigInt type (arbitrary precision signed integer).
+public class BigInt {
+    internal let pointer: RPtr
+    
+    internal init(pointer: RPtr) {
+        self.pointer = pointer
+    }
+    
+    deinit {
+        var p = pointer
+        csl_bridge_rptr_free(&p)
+    }
+    
+    public init(string: String) throws {
+        self.pointer = try CSL.callRPtr { csl_bridge_big_int_from_str(string, $0, $1) }
+    }
+    
+    public func toString() throws -> String {
+        return try CSL.getString { csl_bridge_big_int_to_str(pointer, $0, $1) }
+    }
+}

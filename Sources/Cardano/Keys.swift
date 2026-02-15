@@ -120,6 +120,30 @@ public class KeyHash {
     }
 }
 
+/// Managed wrapper for a script hash.
+public class ScriptHash {
+    internal let pointer: RPtr
+    
+    internal init(pointer: RPtr) {
+        self.pointer = pointer
+    }
+    
+    deinit {
+        var p = pointer
+        csl_bridge_rptr_free(&p)
+    }
+    
+    /// Converts the script hash into a payment or stake credential.
+    public func toCredential() throws -> Credential {
+        let ptr = try CSL.callRPtr { csl_bridge_credential_from_scripthash(pointer, $0, $1) }
+        return Credential(pointer: ptr)
+    }
+    
+    public func toHex() throws -> String {
+        return try CSL.getString { csl_bridge_script_hash_to_hex(pointer, $0, $1) }
+    }
+}
+
 /// Represents a Cardano credential (can be based on a key hash or script hash).
 public class Credential {
     internal let pointer: RPtr
