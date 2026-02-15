@@ -43,6 +43,8 @@ cd "$BUILD_DIR/rust"
 
 # Force modern dependency versions that support tvOS/watchOS
 # Update lockfile to latest compatible versions
+# Make sure RUSTFLAGS from tvOS/watchOS is not interfering with stable builds
+unset RUSTFLAGS
 cargo update
 
 # Build for current host system (Linux/macOS)
@@ -55,6 +57,9 @@ fi
 
 # If on macOS, also attempt to build for iOS platforms
 if [[ "$(uname)" == "Darwin" ]]; then
+    # iOS uses stable Rust - ensure RUSTFLAGS is clear of nightly features
+    unset RUSTFLAGS
+    
     if rustup target list --installed | grep -q "aarch64-apple-ios"; then
         echo "Building for iOS (aarch64)..."
         cargo +stable build --target aarch64-apple-ios --release

@@ -38,8 +38,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Bootstrap
-      env:
-        RUSTFLAGS: "-Z build-std=core,alloc,std"
       run: |
         rustup toolchain install nightly
         rustup target add --toolchain nightly aarch64-apple-tvos aarch64-apple-tvos-sim
@@ -59,8 +57,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Bootstrap
-      env:
-        RUSTFLAGS: "-Z build-std=core,alloc,std"
       run: |
         rustup toolchain install nightly
         rustup target add --toolchain nightly aarch64-apple-watchos aarch64-apple-watchos-sim
