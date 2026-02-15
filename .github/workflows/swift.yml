@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Bootstrap
-      run: RUSTUP_TOOLCHAIN=stable bash scripts/init.sh
+      run: bash scripts/init.sh
     - name: Build
       run: swift build -v
     - name: Run tests
@@ -25,7 +25,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Bootstrap
-      run: RUSTUP_TOOLCHAIN=stable bash scripts/init.sh
+      run: bash scripts/init.sh
     - name: Build
       run: swift build -v
     - name: Run tests
@@ -39,7 +39,7 @@ jobs:
     - name: Bootstrap
       run: |
         rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
-        RUSTUP_TOOLCHAIN=stable bash scripts/init.sh
+        bash scripts/init.sh
     - name: Build iOS
       run: |
         xcodebuild build \
@@ -58,7 +58,8 @@ jobs:
       run: |
         rustup toolchain install nightly
         rustup target add --toolchain nightly aarch64-apple-tvos aarch64-apple-tvos-sim
-        RUSTUP_TOOLCHAIN=nightly bash scripts/init.sh
+        export RUSTUP_TOOLCHAIN=nightly
+        bash scripts/init.sh
     - name: Build tvOS
       run: |
         xcodebuild build \
@@ -77,7 +78,8 @@ jobs:
       run: |
         rustup toolchain install nightly
         rustup target add --toolchain nightly aarch64-apple-watchos aarch64-apple-watchos-sim
-        RUSTUP_TOOLCHAIN=nightly bash scripts/init.sh
+        export RUSTUP_TOOLCHAIN=nightly
+        bash scripts/init.sh
     - name: Build watchOS
       run: |
         xcodebuild build \

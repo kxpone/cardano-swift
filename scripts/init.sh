@@ -10,8 +10,11 @@ BUILD_DIR="$PROJECT_ROOT/.build/native-bridge"
 DEST_DIR="$PROJECT_ROOT/Sources/CCardano"
 
 # Setup Rust environment
-RUST_TOOLCHAIN="${RUSTUP_TOOLCHAIN:-stable}"
-echo "Using Rust toolchain: $RUST_TOOLCHAIN"
+if [ -z "$RUSTUP_TOOLCHAIN" ]; then
+    # Detect active toolchain if not explicitly set
+    RUSTUP_TOOLCHAIN=$(rustup show active-toolchain | cut -d' ' -f1)
+fi
+echo "Using Rust toolchain: $RUSTUP_TOOLCHAIN"
 
 echo "Step 1: Cloning/Updating native Cardano Rust bridge (version $BRIDGE_TAG)..."
 if [ ! -d "$BUILD_DIR" ]; then
@@ -28,27 +31,27 @@ echo "Step 2: Building Rust static library..."
 cd "$BUILD_DIR/rust"
 
 # Build for current host system (Linux/macOS)
-echo "Building for host architecture using $RUST_TOOLCHAIN..."
+echo "Building for host architecture..."
 if [ ! -f "target/release/libreact_native_haskell_shelley.a" ]; then
-    cargo +$RUST_TOOLCHAIN build --release
+    cargo build --release
 else
     echo "Host binary already exists, skipping build (run 'cargo clean' in $BUILD_DIR/rust to force rebuild)."
 fi
 
 # If on macOS, also attempt to build for iOS if rustup targets are available
 if [[ "$(uname)" == "Darwin" ]]; then
-    if rustup target list --installed --toolchain "$RUST_TOOLCHAIN" | grep -q "aarch64-apple-ios"; then
+    if rustup target list --installed | grep -q "aarch64-apple-ios"; then
         echo "Building for iOS (aarch64)..."
-        cargo +$RUST_TOOLCHAIN build --target aarch64-apple-ios --release
+        cargo build --target aarch64-apple-ios --release
         mkdir -p "$DEST_DIR/ios"
         cp "$BUILD_DIR/rust/target/aarch64-apple-ios/release/libreact_native_haskell_shelley.a" "$DEST_DIR/ios/"
     fi
-    if rustup target list --installed --toolchain "$RUST_TOOLCHAIN" | grep -q "apple-ios"; then
+    if rustup target list --installed | grep -q "apple-ios"; then
         IOS_SIM_LIBS=""
         for target in aarch64-apple-ios-sim x86_64-apple-ios; do
-            if rustup target list --installed --toolchain "$RUST_TOOLCHAIN" | grep -q "$target"; then
+            if rustup target list --installed | grep -q "$target"; then
                 echo "Building for iOS Simulator ($target)..."
-                cargo +$RUST_TOOLCHAIN build --target $target --release
+                cargo build --target $target --release
                 IOS_SIM_LIBS="$IOS_SIM_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
             fi
         done
@@ -56,12 +59,12 @@ if [[ "$(uname)" == "Darwin" ]]; then
     fi
 
     # tvOS Support
-    if rustup target list --installed --toolchain "$RUST_TOOLCHAIN" | grep -q "apple-tvos"; then
+    if rustup target list --installed | grep -q "apple-tvos"; then
         TVOS_LIBS=""
         for target in aarch64-apple-tvos aarch64-apple-tvos-sim x86_64-apple-tvos; do
-            if rustup target list --installed --toolchain "$RUST_TOOLCHAIN" | grep -q "$target"; then
+            if rustup target list --installed | grep -q "$target"; then
                 echo "Building for tvOS ($target)..."
-                cargo +$RUST_TOOLCHAIN build --target $target --release
+                cargo build --target $target --release
                 TVOS_LIBS="$TVOS_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
             fi
         done
@@ -72,12 +75,12 @@ if [[ "$(uname)" == "Darwin" ]]; then
     fi
 
     # watchOS Support
-    if rustup target list --installed --toolchain "$RUST_TOOLCHAIN" | grep -q "apple-watchos"; then
+    if rustup target list --installed | grep -q "apple-watchos"; then
         WATCH_LIBS=""
         for target in aarch64-apple-watchos aarch64-apple-watchos-sim arm64_32-apple-watchos armv7k-apple-watchos x86_64-apple-watchos-sim; do
-            if rustup target list --installed --toolchain "$RUST_TOOLCHAIN" | grep -q "$target"; then
+            if rustup target list --installed | grep -q "$target"; then
                 echo "Building for watchOS ($target)..."
-                cargo +$RUST_TOOLCHAIN build --target $target --release
+                cargo build --target $target --release
                 WATCH_LIBS="$WATCH_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
             fi
         done
@@ -92,7 +95,7 @@ echo "Step 3: Generating C headers..."
 mkdir -p "$BUILD_DIR/include"
 if ! command -v cbindgen &> /dev/null; then
     echo "cbindgen not found, installing..."
-    cargo +$RUST_TOOLCHAIN install cbindgen
+    cargo install cbindgen
 fi
 cbindgen --config cbindgen.toml --output "$BUILD_DIR/include/react_native_haskell_shelley.h"
 
