@@ -20,11 +20,29 @@ else
     cd -
 fi
 
+# Check if tvOS or watchOS targets are installed (requires patching)
+echo "Step 1b: Checking for tvOS/watchOS targets..."
+HAS_TVOS=false
+HAS_WATCHOS=false
+if [[ "$(uname)" == "Darwin" ]]; then
+    rustup target list --installed | grep -q "aarch64-apple-tvos" && HAS_TVOS=true
+    rustup target list --installed | grep -q "aarch64-apple-watchos" && HAS_WATCHOS=true
+fi
+
+if [ "$HAS_TVOS" = true ] || [ "$HAS_WATCHOS" = true ]; then
+    echo "tvOS/watchOS targets detected. Applying patches..."
+    bash "$SCRIPT_DIR/patch-rand-os.sh" "$BUILD_DIR/rust/Cargo.toml" || {
+        echo "Warning: Patching script encountered issues, continuing with build..."
+    }
+else
+    echo "No tvOS/watchOS targets detected. Skipping patches."
+fi
+
 echo "Step 2: Building Rust static library..."
 cd "$BUILD_DIR/rust"
 
-# Ensure dependencies are up-to-date and compatible with current targets
-# This fixes the 'getrandom v0.2.8' failure on tvOS/watchOS by updating to 0.2.10+
+# Force modern dependency versions that support tvOS/watchOS
+# Update lockfile to latest compatible versions
 cargo update
 
 # Build for current host system (Linux/macOS)
@@ -35,11 +53,11 @@ else
     echo "Host binary already exists, skipping build (run 'cargo clean' in $BUILD_DIR/rust to force rebuild)."
 fi
 
-# If on macOS, also attempt to build for iOS if rustup targets are available
+# If on macOS, also attempt to build for iOS platforms
 if [[ "$(uname)" == "Darwin" ]]; then
     if rustup target list --installed | grep -q "aarch64-apple-ios"; then
         echo "Building for iOS (aarch64)..."
-        cargo build --target aarch64-apple-ios --release
+        cargo +stable build --target aarch64-apple-ios --release
         mkdir -p "$DEST_DIR/ios"
         cp "$BUILD_DIR/rust/target/aarch64-apple-ios/release/libreact_native_haskell_shelley.a" "$DEST_DIR/ios/"
     fi
@@ -48,20 +66,24 @@ if [[ "$(uname)" == "Darwin" ]]; then
         for target in aarch64-apple-ios-sim x86_64-apple-ios; do
             if rustup target list --installed | grep -q "$target"; then
                 echo "Building for iOS Simulator ($target)..."
-                cargo build --target $target --release
+                cargo +stable build --target $target --release
                 IOS_SIM_LIBS="$IOS_SIM_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
             fi
         done
         # No lipo here as typically we use XCframeworks or single architectures for sim in CI
     fi
 
-    # tvOS Support
-    if rustup target list --installed | grep -q "apple-tvos"; then
+    # tvOS Support - using nightly with build-std for unsupported targets
+    if rustup target list --installed | grep -q "aarch64-apple-tvos"; then
         TVOS_LIBS=""
         for target in aarch64-apple-tvos aarch64-apple-tvos-sim; do
             if rustup target list --installed | grep -q "$target"; then
-                echo "Building for tvOS ($target)..."
-                cargo build --target $target --release
+                echo "Building for tvOS ($target) with build-std..."
+                # Use nightly and build std from source for tvOS targets
+                RUSTFLAGS="-Z build-std=core,alloc,std" cargo +nightly build --target $target --release 2>&1 || {
+                    echo "Warning: tvOS build for $target failed, skipping..."
+                    continue
+                }
                 TVOS_LIBS="$TVOS_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
             fi
         done
@@ -71,13 +93,17 @@ if [[ "$(uname)" == "Darwin" ]]; then
         fi
     fi
 
-    # watchOS Support
-    if rustup target list --installed | grep -q "apple-watchos"; then
+    # watchOS Support - using nightly with build-std for unsupported targets
+    if rustup target list --installed | grep -q "aarch64-apple-watchos"; then
         WATCH_LIBS=""
         for target in aarch64-apple-watchos aarch64-apple-watchos-sim; do
             if rustup target list --installed | grep -q "$target"; then
-                echo "Building for watchOS ($target)..."
-                cargo build --target $target --release
+                echo "Building for watchOS ($target) with build-std..."
+                # Use nightly and build std from source for watchOS targets
+                RUSTFLAGS="-Z build-std=core,alloc,std" cargo +nightly build --target $target --release 2>&1 || {
+                    echo "Warning: watchOS build for $target failed, skipping..."
+                    continue
+                }
                 WATCH_LIBS="$WATCH_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
             fi
         done

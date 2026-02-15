@@ -77,7 +77,12 @@ rustup target add aarch64-apple-tvos aarch64-apple-tvos-sim --toolchain nightly
 rustup target add aarch64-apple-watchos aarch64-apple-watchos-sim --toolchain nightly
 ```
 
-During build, the `init.sh` script will automatically detect these targets if you are running in a nightly environment.
+During build, the `init.sh` script will automatically:
+1. Patch the underlying `rand_os` dependency to enable tvOS/watchOS support (these platforms were missing from the crate's platform checks)
+2. Use `-Z build-std=core,alloc,std` to compile the Rust standard library from source for unsupported targets
+3. Link with the Apple Security framework which is universally available on all Apple platforms
+
+**Technical Details:** The build patches `rand_os v0.1.2` to recognize `tvOS` and `watchOS` as valid targets, allowing it to use the existing macOS/iOS implementation which leverages `SecRandomCopyBytes` from the Security framework.
 
 ## 🧪 Testing
 
