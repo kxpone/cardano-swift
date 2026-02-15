@@ -9,13 +9,6 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="$PROJECT_ROOT/.build/native-bridge"
 DEST_DIR="$PROJECT_ROOT/Sources/CCardano"
 
-# Setup Rust environment
-if [ -z "$RUSTUP_TOOLCHAIN" ]; then
-    # Detect active toolchain if not explicitly set
-    RUSTUP_TOOLCHAIN=$(rustup show active-toolchain | cut -d' ' -f1)
-fi
-echo "Using Rust toolchain: $RUSTUP_TOOLCHAIN"
-
 echo "Step 1: Cloning/Updating native Cardano Rust bridge (version $BRIDGE_TAG)..."
 if [ ! -d "$BUILD_DIR" ]; then
     git clone --depth 1 --branch "$BRIDGE_TAG" "$BRIDGE_REPO" "$BUILD_DIR"
@@ -29,6 +22,10 @@ fi
 
 echo "Step 2: Building Rust static library..."
 cd "$BUILD_DIR/rust"
+
+# Ensure dependencies are up-to-date and compatible with current targets
+# This fixes the 'getrandom v0.2.8' failure on tvOS/watchOS by updating to 0.2.10+
+cargo update
 
 # Build for current host system (Linux/macOS)
 echo "Building for host architecture..."
