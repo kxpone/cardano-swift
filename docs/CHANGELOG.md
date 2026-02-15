@@ -5,9 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-02-15
+## [0.2.1] - 2026-02-15
 
 ### 🚀 Added
+- **Full Apple Ecosystem Support**: 
+  - Added native support for **tvOS** (13.0+) and **watchOS** (6.0+).
+  - Verified CI/CD builds for device and simulator (Apple Silicon/Intel) architectures.
+  - Graceful support for Tier 3 Rust targets via nightly toolchain integration.
+- **Pinned Core Stability**:
+  - Pinned native Rust bridge to stable version **v9.0.1** (Cardano Serialization Lib 15.0.3).
+  - Ensures production reliability and prevents breaking changes from upstream core updates.
+- **Documentation**:
+  - Updated Comparison Table with precision metrics for alternative SDKs.
+
+### 🔧 Changed
+- Updated `scripts/init.sh` to handle automated bootstrap for all 5 supported platforms (iOS/macOS/tvOS/watchOS/Linux).
+
+## [0.2.0] - 2026-02-15
 - **Complete Async/Await API** (Swift Concurrency):
   - All public methods and classes now have comprehensive English documentation
   - High-performance concurrent operations throughout the SDK

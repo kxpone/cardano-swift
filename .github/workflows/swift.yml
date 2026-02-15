@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Bootstrap
-      run: bash scripts/init.sh
+      run: RUSTUP_TOOLCHAIN=stable bash scripts/init.sh
     - name: Build
       run: swift build -v
     - name: Run tests
@@ -25,7 +25,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Bootstrap
-      run: bash scripts/init.sh
+      run: RUSTUP_TOOLCHAIN=stable bash scripts/init.sh
     - name: Build
       run: swift build -v
     - name: Run tests
@@ -39,7 +39,7 @@ jobs:
     - name: Bootstrap
       run: |
         rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
-        bash scripts/init.sh
+        RUSTUP_TOOLCHAIN=stable bash scripts/init.sh
     - name: Build iOS
       run: |
         xcodebuild build \
@@ -54,14 +54,11 @@ jobs:
     continue-on-error: true
     steps:
     - uses: actions/checkout@v4
-    - name: Setup Nightly Rust
-      run: |
-        rustup toolchain install nightly
-        rustup default nightly
     - name: Bootstrap
       run: |
-        rustup target add aarch64-apple-tvos aarch64-apple-tvos-sim
-        bash scripts/init.sh
+        rustup toolchain install nightly
+        rustup target add --toolchain nightly aarch64-apple-tvos aarch64-apple-tvos-sim
+        RUSTUP_TOOLCHAIN=nightly bash scripts/init.sh
     - name: Build tvOS
       run: |
         xcodebuild build \
@@ -76,14 +73,11 @@ jobs:
     continue-on-error: true
     steps:
     - uses: actions/checkout@v4
-    - name: Setup Nightly Rust
-      run: |
-        rustup toolchain install nightly
-        rustup default nightly
     - name: Bootstrap
       run: |
-        rustup target add aarch64-apple-watchos aarch64-apple-watchos-sim
-        bash scripts/init.sh
+        rustup toolchain install nightly
+        rustup target add --toolchain nightly aarch64-apple-watchos aarch64-apple-watchos-sim
+        RUSTUP_TOOLCHAIN=nightly bash scripts/init.sh
     - name: Build watchOS
       run: |
         xcodebuild build \
