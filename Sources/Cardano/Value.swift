@@ -19,7 +19,7 @@ public struct Value {
     
     /// Initializes a Value object.
     /// - Parameters:
-    ///   - coin: Amount in Lovelace.
+    ///   - coin: Amount in Lovelace (1 ADA = 1,000,000 Lovelace).
     ///   - multiAsset: (Optional) `MultiAsset` container for native tokens.
     public init(coin: UInt64, multiAsset: MultiAsset? = nil) {
         self.coin = coin
@@ -27,6 +27,8 @@ public struct Value {
     }
     
     /// Internal helper to convert this struct into a native Rust `Value` object.
+    /// - Returns: An RPtr pointing to the Value.
+    /// - Throws: CardanoError if conversion fails.
     internal func toPointer() throws -> RPtr {
         let coinBigNum = try CSL.callRPtr { csl_bridge_big_num_from_str(String(coin), $0, $1) }
         let value = try CSL.callRPtr { csl_bridge_value_new(coinBigNum, $0, $1) }

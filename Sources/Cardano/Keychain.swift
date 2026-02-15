@@ -20,6 +20,7 @@ public class Keychain {
     /// - Parameters:
     ///   - mnemonic: The `Mnemonic` instance to use for entropy.
     ///   - password: An optional BIP39 passphrase (defaults to empty).
+    /// - Throws: CardanoError if initialization fails.
     public init(mnemonic: Mnemonic, password: [UInt8] = []) throws {
         let entropy = try mnemonic.toEntropy()
         self.rootKey = try entropy.withUnsafeBytes { entropyPtr in
@@ -45,6 +46,7 @@ public class Keychain {
     /// Derives a child keychain using a standard derivation path (e.g., "m/1852'/1815'/0'/0/0").
     /// - Parameter path: The full derivation path as a string.
     /// - Returns: A new `Keychain` instance initialized with the derived private key.
+    /// - Throws: CardanoError if derivation fails or path is invalid.
     public func derive(path: String) throws -> Keychain {
         let components = path.split(separator: "/").filter { $0 != "m" }
         var currentKey = rootKey
@@ -71,6 +73,7 @@ public class Keychain {
     
     /// Returns the BIP32 public key corresponding to this keychain's private key.
     /// - Returns: A `Bip32PublicKey` wrapper.
+    /// - Throws: CardanoError if key extraction fails.
     public func publicKey() throws -> Bip32PublicKey {
         let ptr = try CSL.callRPtr { csl_bridge_bip32_private_key_to_public(rootKey, $0, $1) }
         return Bip32PublicKey(pointer: ptr)
@@ -79,8 +82,65 @@ public class Keychain {
     /// Returns the raw Ed25519 private key. 
     /// This is used for generating transaction witnesses and signatures.
     /// - Returns: A `PrivateKey` wrapper.
+    /// - Throws: CardanoError if key extraction fails.
     public func privateKey() throws -> PrivateKey {
         let ptr = try CSL.callRPtr { csl_bridge_bip32_private_key_to_raw_key(rootKey, $0, $1) }
         return PrivateKey(pointer: ptr)
+    }
+
+    // MARK: - Async API Methods
+
+    /// Asynchronously derives a child keychain using a derivation path.
+    /// Executes the full derivation chain on a background thread.
+    /// Useful when deriving multiple paths or deep derivation chains.
+    /// - Parameter path: The full derivation path as a string.
+    /// - Returns: A new `Keychain` instance initialized with the derived private key.
+    /// - Throws: CardanoError if derivation fails.
+    public func deriveAsync(path: String) async throws -> Keychain {
+        return try await Task.detached(priority: .userInitiated) {
+            try self.derive(path: path)
+        }.value
+    }
+
+    /// Asynchronously derives multiple keychains in parallel.
+    /// Significantly faster than sequential derivation for multiple paths.
+    /// - Parameter paths: An array of derivation path strings.
+    /// - Returns: An array of `Keychain` objects in the same order as input paths.
+    /// - Throws: CardanoError if derivation fails.
+    public func deriveMultipleAsync(paths: [String]) async throws -> [Keychain] {
+        let keychains = try await withThrowingTaskGroup(of: (Int, Keychain).self, returning: [Keychain].self) { group in
+            for (idx, path) in paths.enumerated() {
+                group.addTask {
+                    let keychain = try self.derive(path: path)
+                    return (idx, keychain)
+                }
+            }
+            
+            var results = [(Int, Keychain)]()
+            for try await (idx, keychain) in group {
+                results.append((idx, keychain))
+            }
+            
+            return results.sorted { $0.0 < $1.0 }.map { $0.1 }
+        }
+        return keychains
+    }
+
+    /// Asynchronously gets the BIP32 public key.
+    /// - Returns: A `Bip32PublicKey` wrapper.
+    /// - Throws: CardanoError if key extraction fails.
+    public func publicKeyAsync() async throws -> Bip32PublicKey {
+        return try await Task.detached(priority: .userInitiated) {
+            try self.publicKey()
+        }.value
+    }
+
+    /// Asynchronously gets the raw Ed25519 private key.
+    /// - Returns: A `PrivateKey` wrapper.
+    /// - Throws: CardanoError if key extraction fails.
+    public func privateKeyAsync() async throws -> PrivateKey {
+        return try await Task.detached(priority: .userInitiated) {
+            try self.privateKey()
+        }.value
     }
 }

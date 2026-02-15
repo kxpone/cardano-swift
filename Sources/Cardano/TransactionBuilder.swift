@@ -254,4 +254,44 @@ public class TransactionBuilder {
         let ptr = try CSL.callRPtr { csl_bridge_transaction_builder_build(builder, $0, $1) }
         return TransactionBody(pointer: ptr)
     }
+
+    // MARK: - Async API Methods
+
+    /// Asynchronously adds a list of UTXOs as inputs.
+    /// Executes input preparation on a background thread.
+    /// - Parameter utxos: An array of `UTXO` objects available to spend.
+    public func addInputsAsync(from utxos: [UTXO]) async throws {
+        return try await Task.detached(priority: .userInitiated) {
+            try self.addInputs(from: utxos)
+        }.value
+    }
+
+    /// Asynchronously adds a Plutus script input.
+    /// - Parameters:
+    ///   - witness: The `PlutusWitness` containing script, datum, and redeemer.
+    ///   - utxo: The `UTXO` to spend.
+    public func addPlutusScriptInputAsync(witness: PlutusWitness, utxo: UTXO) async throws {
+        return try await Task.detached(priority: .userInitiated) {
+            try self.addPlutusScriptInput(witness: witness, utxo: utxo)
+        }.value
+    }
+
+    /// Asynchronously finalizes the transaction construction.
+    /// Performs fee calculation and change calculation on a background thread.
+    /// Recommended for complex transactions with many inputs/outputs.
+    /// - Parameter changeAddress: The `Address` where the remaining funds should be sent.
+    /// - Returns: A `TransactionBody` containing the finalized transaction details.
+    public func buildAsync(changeAddress: Address) async throws -> TransactionBody {
+        return try await Task.detached(priority: .userInitiated) {
+            try self.build(changeAddress: changeAddress)
+        }.value
+    }
+
+    /// Asynchronously sets the collateral inputs.
+    /// - Parameter utxos: An array of `UTXO` available as collateral.
+    public func setCollateralAsync(utxos: [UTXO]) async throws {
+        return try await Task.detached(priority: .userInitiated) {
+            try self.setCollateral(utxos: utxos)
+        }.value
+    }
 }

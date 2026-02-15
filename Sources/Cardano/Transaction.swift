@@ -32,6 +32,10 @@ public class TransactionInput {
         self.pointer = pointer
     }
     
+    /// Initializes a TransactionInput from a transaction hash and output index.
+    /// - Parameter hash: The transaction hash (32 bytes) of the UTXO.
+    /// - Parameter index: The output index within the transaction.
+    /// - Throws: CardanoError if initialization fails.
     public init(hash: Data, index: UInt32) throws {
         let hashPtr = try hash.withUnsafeBytes { ptr in
             try CSL.callRPtr { csl_bridge_transaction_hash_from_bytes(ptr.bindMemory(to: UInt8.self).baseAddress!, uintptr_t(hash.count), $0, $1) }
@@ -55,18 +59,30 @@ public class TransactionWitnessSet {
         self.pointer = pointer
     }
     
+    /// Initializes a new empty TransactionWitnessSet.
+    /// - Returns: A new empty TransactionWitnessSet.
+    /// - Throws: CardanoError if initialization fails.
     public init() throws {
         self.pointer = try CSL.callRPtr { csl_bridge_transaction_witness_set_new($0, $1) }
     }
     
+    /// Sets the Plutus scripts for smart contract validation.
+    /// - Parameter scripts: A PlutusScripts collection containing the scripts.
+    /// - Throws: CardanoError if setting scripts fails.
     public func setPlutusScripts(scripts: PlutusScripts) throws {
         try CSL.voidCall { csl_bridge_transaction_witness_set_set_plutus_scripts(pointer, scripts.pointer, $0) }
     }
     
+    /// Sets the Plutus data (datums) required by the scripts.
+    /// - Parameter data: A PlutusList containing the datum objects.
+    /// - Throws: CardanoError if setting data fails.
     public func setPlutusData(data: PlutusList) throws {
         try CSL.voidCall { csl_bridge_transaction_witness_set_set_plutus_data(pointer, data.pointer, $0) }
     }
     
+    /// Sets the redeemers (script execution arguments) for this transaction.
+    /// - Parameter redeemers: A Redeemers collection containing the redeemer objects.
+    /// - Throws: CardanoError if setting redeemers fails.
     public func setRedeemers(redeemers: Redeemers) throws {
         try CSL.voidCall { csl_bridge_transaction_witness_set_set_redeemers(pointer, redeemers.pointer, $0) }
     }
@@ -114,6 +130,8 @@ public class Transaction {
     
     /// Computes the transaction hash.
     /// Uses a "fixed" transaction body bridge to ensure consistent hashing across different CSL versions.
+    /// - Returns: The transaction hash as a hexadecimal string.
+    /// - Throws: CardanoError if hashing fails.
     public func hash() throws -> String {
         let body = try CSL.callRPtr { csl_bridge_transaction_body(pointer, $0, $1) }
         let bodyData = try CSL.getData { csl_bridge_transaction_body_to_bytes(body, $0, $1) }
@@ -136,23 +154,77 @@ public class Transaction {
     }
     
     /// Returns the Hexadecimal (CBOR) representation of the full transaction.
+    /// - Returns: The transaction encoded as a hex string.
+    /// - Throws: CardanoError if serialization fails.
     public func toHex() throws -> String {
         return try CSL.getString { csl_bridge_transaction_to_hex(pointer, $0, $1) }
     }
     
     /// Returns the raw bytes (CBOR) of the full transaction.
+    /// - Returns: The transaction bytes as an array of UInt8.
+    /// - Throws: CardanoError if serialization fails.
     public func toBytes() throws -> [UInt8] {
         let data = try CSL.getData { csl_bridge_transaction_to_bytes(pointer, $0, $1) }
         return [UInt8](data)
+    }
+    
+    // MARK: - Priority 3: Async Batch Operations
+    
+    /// Asynchronously serializes multiple transactions to hex format in parallel
+    /// - Parameter transactions: Array of Transaction objects to serialize
+    /// - Returns: Array of hex-encoded transaction strings
+    public static func serializeBatchAsync(transactions: [Transaction]) async throws -> [String] {
+        return try await withThrowingTaskGroup(
+            of: (Int, String).self,
+            returning: [String].self
+        ) { group in
+            for (index, tx) in transactions.enumerated() {
+                group.addTask {
+                    let hex = try tx.toHex()
+                    return (index, hex)
+                }
+            }
+            
+            var results = Array(repeating: "", count: transactions.count)
+            for try await (index, hex) in group {
+                results[index] = hex
+            }
+            return results
+        }
+    }
+    
+    /// Asynchronously parses multiple transactions from hex format in parallel
+    /// - Parameter hexStrings: Array of hex-encoded transaction strings
+    /// - Returns: Array of parsed Transaction objects
+    public static func parseMultipleAsync(hexStrings: [String]) async throws -> [Transaction] {
+        return try await withThrowingTaskGroup(
+            of: (Int, Transaction).self,
+            returning: [Transaction].self
+        ) { group in
+            for (index, hex) in hexStrings.enumerated() {
+                group.addTask {
+                    let tx = try Transaction.fromHex(hex)
+                    return (index, tx)
+                }
+            }
+            
+            var tempResults: [Int: Transaction] = [:]
+            for try await (index, tx) in group {
+                tempResults[index] = tx
+            }
+            
+            return (0..<hexStrings.count).compactMap { tempResults[$0] }
+        }
     }
 }
 
 extension Wallet {
     /// Signs a transaction body using the provided keychain.
     /// - Parameters:
-    ///   - transactionBody: The `TransactionBody` to constructed transaction body.
+    ///   - transactionBody: The `TransactionBody` to sign.
     ///   - keychain: The derived keychain (usually at index m/1852'/1815'/0'/0/X) to sign with.
     /// - Returns: A complete `Transaction` object ready for submission.
+    /// - Throws: CardanoError if signing fails.
     public func sign(transactionBody: TransactionBody, keychain: Keychain) throws -> Transaction {
         let bodyData = try CSL.getData { csl_bridge_transaction_body_to_bytes(transactionBody.pointer, $0, $1) }
         let fixedBody = try CSL.callRPtr { (res: UnsafeMutablePointer<RPtr>, err: UnsafeMutablePointer<CharPtr?>) -> Bool in

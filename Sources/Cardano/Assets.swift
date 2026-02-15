@@ -16,6 +16,7 @@ public class Assets {
     internal let pointer: RPtr
     
     /// Initializes an empty assets collection.
+    /// - Throws: CardanoError if initialization fails.
     public init() throws {
         self.pointer = try CSL.callRPtr { csl_bridge_assets_new($0, $1) }
     }
@@ -29,6 +30,7 @@ public class Assets {
     /// - Parameters:
     ///   - assetName: The name of the asset (string).
     ///   - amount: The quantity of the asset to add.
+    /// - Throws: CardanoError if addition fails.
     public func add(assetName: String, amount: UInt64) throws {
         let nameData = Data(assetName.utf8)
         let namePtr = try nameData.withUnsafeBytes { ptr in
@@ -39,6 +41,8 @@ public class Assets {
     }
     
     /// Returns the number of distinct assets in the collection.
+    /// - Returns: The count of assets.
+    /// - Throws: CardanoError if length lookup fails.
     public func len() throws -> UInt64 {
         let length: Int64 = try CSL.call { csl_bridge_assets_len(pointer, $0, $1) }
         return UInt64(length)
@@ -51,6 +55,7 @@ public class MultiAsset {
     internal let pointer: RPtr
     
     /// Initializes an empty multi-asset container.
+    /// - Throws: CardanoError if initialization fails.
     public init() throws {
         self.pointer = try CSL.callRPtr { csl_bridge_multi_asset_new($0, $1) }
     }
@@ -64,6 +69,7 @@ public class MultiAsset {
     /// - Parameters:
     ///   - policyId: The hexadecimal string of the policy ID (Script Hash).
     ///   - assets: The `Assets` collection to associate with this policy.
+    /// - Throws: CardanoError if insertion fails.
     public func insert(policyId: String, assets: Assets) throws {
         let policyPtr = try CSL.callRPtr { csl_bridge_script_hash_from_hex(policyId, $0, $1) }
         _ = try CSL.callRPtr { csl_bridge_multi_asset_insert(pointer, policyPtr, assets.pointer, $0, $1) }

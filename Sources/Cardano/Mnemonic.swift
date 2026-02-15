@@ -24,6 +24,7 @@ public struct Mnemonic {
     
     /// Generates a new random mnemonic phrase with the specified strength.
     /// - Parameter strength: The entropy strength (e.g., bits128 results in 12 words).
+    /// - Throws: Bip39Error if mnemonic generation fails.
     public init(strength: MnemonicStrength = .bits160) throws {
         let mnemonic = try Bip39.Mnemonic(strength: strength.bits)
         self.phrase = mnemonic.mnemonic().joined(separator: " ")
@@ -31,9 +32,42 @@ public struct Mnemonic {
     
     /// Converts the mnemonic phrase back to its original binary entropy.
     /// - Returns: An array of bytes representing the entropy.
+    /// - Throws: Bip39Error if conversion fails (invalid phrase).
     public func toEntropy() throws -> [UInt8] {
         let words = phrase.components(separatedBy: " ")
         return try Bip39.Mnemonic.toEntropy(words)
+    }
+    
+    // MARK: - Priority 3: Async Batch Validation
+    
+    /// Asynchronously validates multiple mnemonic phrases in parallel.
+    /// - Parameter phrases: Array of mnemonic phrase strings to validate.
+    /// - Returns: Array of validation results (true = valid, false = invalid) maintaining input order.
+    public static func validateMultipleAsync(phrases: [String]) async throws -> [Bool] {
+        return await withTaskGroup(
+            of: (Int, Bool).self,
+            returning: [Bool].self
+        ) { group in
+            for (index, phrase) in phrases.enumerated() {
+                group.addTask {
+                    let words = phrase.components(separatedBy: " ")
+                    let isValid: Bool
+                    do {
+                        _ = try Bip39.Mnemonic.toEntropy(words)
+                        isValid = true
+                    } catch {
+                        isValid = false
+                    }
+                    return (index, isValid)
+                }
+            }
+            
+            var results = Array(repeating: false, count: phrases.count)
+            for await (index, isValid) in group {
+                results[index] = isValid
+            }
+            return results
+        }
     }
 }
 
