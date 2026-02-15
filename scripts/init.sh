@@ -58,7 +58,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
     # tvOS Support
     if rustup target list --installed | grep -q "apple-tvos"; then
         TVOS_LIBS=""
-        for target in aarch64-apple-tvos aarch64-apple-tvos-sim x86_64-apple-tvos; do
+        for target in aarch64-apple-tvos aarch64-apple-tvos-sim; do
             if rustup target list --installed | grep -q "$target"; then
                 echo "Building for tvOS ($target)..."
                 cargo build --target $target --release
@@ -74,7 +74,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
     # watchOS Support
     if rustup target list --installed | grep -q "apple-watchos"; then
         WATCH_LIBS=""
-        for target in aarch64-apple-watchos aarch64-apple-watchos-sim arm64_32-apple-watchos armv7k-apple-watchos x86_64-apple-watchos-sim; do
+        for target in aarch64-apple-watchos aarch64-apple-watchos-sim; do
             if rustup target list --installed | grep -q "$target"; then
                 echo "Building for watchOS ($target)..."
                 cargo build --target $target --release
