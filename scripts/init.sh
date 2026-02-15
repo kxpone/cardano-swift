@@ -34,16 +34,22 @@ if [[ "$(uname)" == "Darwin" ]]; then
         mkdir -p "$DEST_DIR/ios"
         cp "$BUILD_DIR/rust/target/aarch64-apple-ios/release/libreact_native_haskell_shelley.a" "$DEST_DIR/ios/"
     fi
-    if rustup target list --installed | grep -q "x86_64-apple-ios"; then
-        echo "Building for iOS Simulator (x86_64)..."
-        cargo build --target x86_64-apple-ios --release
-        # Note: In a real world scenario, you'd use lipo to create a fat binary or XCFramework
+    if rustup target list --installed | grep -q "apple-ios"; then
+        IOS_SIM_LIBS=""
+        for target in aarch64-apple-ios-sim x86_64-apple-ios; do
+            if rustup target list --installed | grep -q "$target"; then
+                echo "Building for iOS Simulator ($target)..."
+                cargo build --target $target --release
+                IOS_SIM_LIBS="$IOS_SIM_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
+            fi
+        done
+        # No lipo here as typically we use XCframeworks or single architectures for sim in CI
     fi
 
     # tvOS Support
     if rustup target list --installed | grep -q "apple-tvos"; then
         TVOS_LIBS=""
-        for target in aarch64-apple-tvos x86_64-apple-tvos; do
+        for target in aarch64-apple-tvos aarch64-apple-tvos-sim x86_64-apple-tvos; do
             if rustup target list --installed | grep -q "$target"; then
                 echo "Building for tvOS ($target)..."
                 cargo build --target $target --release
@@ -59,7 +65,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
     # watchOS Support
     if rustup target list --installed | grep -q "apple-watchos"; then
         WATCH_LIBS=""
-        for target in aarch64-apple-watchos arm64_32-apple-watchos; do
+        for target in arm64_32-apple-watchos armv7k-apple-watchos aarch64-apple-watchos-sim x86_64-apple-watchos-sim; do
             if rustup target list --installed | grep -q "$target"; then
                 echo "Building for watchOS ($target)..."
                 cargo build --target $target --release
