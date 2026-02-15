@@ -35,3 +35,12 @@ Carthage/Build
 # `pod install` in .travis.yml
 #
 Pods/
+.build/
+.swiftpm/
+Package.resolved
+
+# Native Binaries (hydrated via init.sh)
+Sources/CCardano/linux/
+Sources/CCardano/darwin/
+Sources/CCardano/ios/
+Sources/CCardano/include/react_native_haskell_shelley.h

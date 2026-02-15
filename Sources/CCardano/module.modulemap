@@ -1,0 +1,4 @@
+module CCardano {
+    header "include/react_native_haskell_shelley.h"
+    export *
+}

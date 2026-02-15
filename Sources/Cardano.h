@@ -2,8 +2,9 @@
 //  Cardano.h
 //  Cardano
 //
-//  Created by Ivan Manov on 17.06.2020.
-//  Copyright © 2020 hellc. All rights reserved.
+//  Created by hellc.
+//  Copyright © 2020-2026 KXP. All rights reserved.
+//  Licensed under the MIT License.
 //
 
 #import <Foundation/Foundation.h>

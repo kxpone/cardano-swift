@@ -1,19 +1,49 @@
-name: Swift
+name: Swift CI
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, main ]
   pull_request:
-    branches: [ develop ]
+    branches: [ develop, main ]
 
 jobs:
-  build:
-
-    runs-on: macos-latest
-
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+    - name: Bootstrap
+      run: bash scripts/init.sh
     - name: Build
       run: swift build -v
     - name: Run tests
       run: swift test -v
+
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Bootstrap
+      run: bash scripts/init.sh
+    - name: Build
+      run: swift build -v
+    - name: Run tests
+      run: swift test -v
+
+  ios:
+    name: iOS
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Bootstrap
+      run: |
+        rustup target add aarch64-apple-ios x86_64-apple-ios
+        bash scripts/init.sh
+    - name: Build iOS
+      run: |
+        xcodebuild build \
+          -scheme Cardano \
+          -destination 'generic/platform=iOS' \
+          -sdk iphoneos \
+          CODE_SIGNING_ALLOWED=NO

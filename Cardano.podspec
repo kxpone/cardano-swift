@@ -1,32 +1,36 @@
 Pod::Spec.new do |s|
 
-  s.swift_versions                      = '5.0'
+  s.swift_versions                      = '5.3'
   s.name                                = 'Cardano'
-  s.version                             = '0.0.1'
+  s.version                             = '0.1.0'
   s.summary                             = 'Cardano Swift SDK'
   s.homepage                            = 'https://github.com/kxpone/cardano-swift'
   s.license                             = 'MIT'
-  s.author                              = { '@hellc' => 'info@kxp.one' }
-  s.social_media_url                    = 'https://twitter.com/kxpone'
-  s.requires_arc                        = false
-  s.ios.deployment_target               = '11.0'
+  s.author                              = { '@hellc' => 'ivanmanov@live.com' }
+  s.social_media_url                    = 'https://twitter.com/ihellc'
+  s.requires_arc                        = true
+  s.ios.deployment_target               = '13.0'
                 
-  s.source                              = { :git => 'https://github.com/kxpone/cardano-swift.git', :branch => 'develop' }
-                
-  s.default_subspec                     = 'All'
-  
-  s.subspec 'All' do |all|
-    all.dependency                      'Cardano/Core'
-    all.dependency                      'Cardano/Rest'
-  end
-  
-  s.subspec 'Core' do |core|
-    core.source_files                   = 'Source/Cardano/Core/**/*.{swift}'
-  end
-  
-  s.subspec 'Rest' do |rest|
-    rest.source_files                   = 'Source/Cardano/Rest/**/*.{swift}'
-  end
-  
-  s.dependency 'CatalystNet', :git => 'https://github.com/hellc/CatalystNet.git', :commit => 'e4fc298e83b4dc6a28331343ea5d3e0b87f1466a'
+  s.source                              = { :git => 'https://github.com/kxpone/cardano-swift.git', :tag => s.version.to_s }
+
+  s.prepare_command = 'bash scripts/init.sh'
+
+  s.source_files = 'Sources/Cardano/**/*.swift'
+  s.dependency 'Bip39.swift', '~> 0.2.0'
+
+  s.pod_target_xcconfig = {
+    'SWIFT_INCLUDE_PATHS' => '$(PODS_TARGET_SRCROOT)/Sources/CCardano/include',
+    'OTHER_LDFLAGS' => '-lreact_native_haskell_shelley'
+  }
+
+  s.ios.pod_target_xcconfig = {
+    'LIBRARY_SEARCH_PATHS' => '$(PODS_TARGET_SRCROOT)/Sources/CCardano/ios $(PODS_TARGET_SRCROOT)/Sources/CCardano/darwin'
+  }
+
+  s.osx.pod_target_xcconfig = {
+    'LIBRARY_SEARCH_PATHS' => '$(PODS_TARGET_SRCROOT)/Sources/CCardano/darwin'
+  }
+
+  s.preserve_paths = 'Sources/CCardano/**/*'
+  s.libraries = 'c++', 'resolv'
 end
