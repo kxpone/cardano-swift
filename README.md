@@ -210,6 +210,27 @@ The build system will automatically bundle these into the framework during the i
 
 ---
 
+## 📊 Comparison
+
+| Feature | [cardano-swift](https://github.com/kxpone/cardano-swift) | [CardanoKit](https://github.com/TokeoPay/CardanoKit) | [Cardano.swift](https://github.com/tesseract-one/Cardano.swift) | [swift-cardano-core](https://github.com/Kingpin-Apps/swift-cardano-core) | [CSL Bridge](https://github.com/Emurgo/csl-mobile-bridge) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **macOS Support** | ✅ | ✅ | ✅ | ✅ | ✅* |
+| **iOS Support** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Linux Support** | ✅ | ❌ | ✅ | ✅ | ✅* |
+| **BIP39 Mnemonics** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Transaction Builder** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Plutus Script Support** | ✅ | ⚠️ | ❌ | ✅ | ✅ |
+| **Native Script Support** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **CIP-30 Data Signing** | ✅ | ✅ | ❌ | ❌ | ✅ |
+| **Built-in Networking** | ❌ | ❌ | ✅ | ❌ | ❌ |
+| **Multi-Asset Support** | ✅ | ✅ | ❌ | ✅ | ✅ |
+| **Pure Swift (No C/Rust)** | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **Latest Era (Conway)** | ✅ | ✅ | ❌ | ✅ | ✅ |
+
+*\* Supports any platform where Rust can be compiled (requires manual compilation for non-mobile targets).*
+
+---
+
 ## 🏁 Roadmap
 
 ### 🏁 Done (v0.2.0)
@@ -225,12 +246,12 @@ The build system will automatically bundle these into the framework during the i
 - [x] **Memory Safety**: Automated RPtr management and error handling from Rust core.
 - [x] **CIP-30 Compatibility**: Data signing and verification.
 - [x] **Plutus V1/V2/V3**: Full support for scripts, datums, and redeemers.
+- [x] **Min-ADA Logic**: Automated calculation of minimum required ADA for multi-asset outputs.
 
 ### 📅 To Do
 - [ ] **Governance (CIP-1694)**: Support for DRep registration, voting, and delegation (Conway era).
 - [ ] **Native Scripts**: Multi-signature support (ALL, ANY, N-of-M) and time-locks.
 - [ ] **Pluggable Providers**: Protocol-based interface for easy integration with Blockfrost, Koios, or Ogmios.
-- [ ] **Min-ADA Logic**: Automated calculation of minimum required ADA for multi-asset outputs.
 - [ ] **Unified Documentation**: Full API reference via DocC with detailed code examples.
 - [ ] **Collateral & Change**: Automated collateral selection for smart contract interactions.
 

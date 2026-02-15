@@ -47,3 +47,37 @@ jobs:
           -destination 'generic/platform=iOS' \
           -sdk iphoneos \
           CODE_SIGNING_ALLOWED=NO
+
+  tvos:
+    name: tvOS
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Bootstrap
+      run: |
+        rustup target add aarch64-apple-tvos x86_64-apple-tvos
+        bash scripts/init.sh
+    - name: Build tvOS
+      run: |
+        xcodebuild build \
+          -scheme Cardano \
+          -destination 'generic/platform=tvOS' \
+          -sdk appletvos \
+          CODE_SIGNING_ALLOWED=NO
+
+  watchos:
+    name: watchOS
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Bootstrap
+      run: |
+        rustup target add aarch64-apple-watchos arm64_32-apple-watchos x86_64-apple-watchos-sim
+        bash scripts/init.sh
+    - name: Build watchOS
+      run: |
+        xcodebuild build \
+          -scheme Cardano \
+          -destination 'generic/platform=watchOS' \
+          -sdk watchos \
+          CODE_SIGNING_ALLOWED=NO

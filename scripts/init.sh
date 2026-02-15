@@ -39,6 +39,38 @@ if [[ "$(uname)" == "Darwin" ]]; then
         cargo build --target x86_64-apple-ios --release
         # Note: In a real world scenario, you'd use lipo to create a fat binary or XCFramework
     fi
+
+    # tvOS Support
+    if rustup target list --installed | grep -q "apple-tvos"; then
+        TVOS_LIBS=""
+        for target in aarch64-apple-tvos x86_64-apple-tvos; do
+            if rustup target list --installed | grep -q "$target"; then
+                echo "Building for tvOS ($target)..."
+                cargo build --target $target --release
+                TVOS_LIBS="$TVOS_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
+            fi
+        done
+        if [ ! -z "$TVOS_LIBS" ]; then
+            mkdir -p "$DEST_DIR/tvos"
+            lipo -create $TVOS_LIBS -output "$DEST_DIR/tvos/libreact_native_haskell_shelley.a"
+        fi
+    fi
+
+    # watchOS Support
+    if rustup target list --installed | grep -q "apple-watchos"; then
+        WATCH_LIBS=""
+        for target in aarch64-apple-watchos arm64_32-apple-watchos; do
+            if rustup target list --installed | grep -q "$target"; then
+                echo "Building for watchOS ($target)..."
+                cargo build --target $target --release
+                WATCH_LIBS="$WATCH_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
+            fi
+        done
+        if [ ! -z "$WATCH_LIBS" ]; then
+            mkdir -p "$DEST_DIR/watchos"
+            lipo -create $WATCH_LIBS -output "$DEST_DIR/watchos/libreact_native_haskell_shelley.a"
+        fi
+    fi
 fi
 
 echo "Step 3: Generating C headers..."
