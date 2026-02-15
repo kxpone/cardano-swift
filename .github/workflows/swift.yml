@@ -73,6 +73,7 @@ jobs:
           -sdk watchos \
           CODE_SIGNING_ALLOWED=NO
 
+  ios:
     name: iOS
     runs-on: macos-latest
     steps:
