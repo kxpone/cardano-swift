@@ -1,5 +1,13 @@
 # Cardano Swift SDK (Universal Native)
 
+[![Swift CI](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml/badge.svg)](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml)
+[![Swift Version](https://img.shields.io/badge/Swift-5.3+-orange.svg)](https://swift.org)
+[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20Linux-blue.svg)](https://github.com/kxpone/cardano-swift)
+[![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
+[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
+[![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Cardano.svg)](https://cocoapods.org/pods/Cardano)
+[![License](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
+
 A high-performance Cardano SDK for Swift that works natively on **Linux**, **macOS**, and **iOS**. It bridges the industry-standard [Cardano Serialization Lib (CSL)](https://github.com/Emurgo/cardano-serialization-lib) via a thin Rust-C-Swift bridge.
 
 ## 🚀 Features
@@ -32,6 +40,21 @@ pod 'Cardano', :git => 'https://github.com/kxpone/cardano-swift.git'
 ```
 
 Running `pod install` will automatically trigger the native build process via `prepare_command`.
+
+### Carthage
+
+Add the following to your `Cartfile`:
+
+```ogdl
+github "kxpone/cardano-swift" "main"
+```
+
+Because this SDK relies on a native Rust bridge, you must run the bootstrap script after updating your dependencies:
+
+```bash
+carthage update
+./Carthage/Checkouts/cardano-swift/scripts/init.sh
+```
 
 ## ⚙️ How it works
 
