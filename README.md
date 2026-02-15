@@ -1,14 +1,14 @@
-# Cardano Swift SDK (Universal Native)
+# Cardano Swift (Universal)
 
 [![Swift CI](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml/badge.svg)](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml)
 [![Swift Version](https://img.shields.io/badge/Swift-5.3+-orange.svg)](https://swift.org)
-[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20Linux-blue.svg)](https://github.com/kxpone/cardano-swift)
+[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20tvOS%20%7C%20watchOS%20%7C%20Linux-blue.svg)](https://github.com/kxpone/cardano-swift)
 [![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 [![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Cardano.svg)](https://cocoapods.org/pods/Cardano)
 [![License](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
 
-A high-performance Cardano SDK for Swift that works natively on **Linux**, **macOS**, and **iOS**. It bridges the industry-standard [Cardano Serialization Lib (CSL)](https://github.com/Emurgo/cardano-serialization-lib) via a thin Rust-C-Swift bridge.
+A high-performance Cardano SDK for Swift that works natively on **iOS**, **macOS**, **tvOS**, **watchOS**, and **Linux**. It bridges the industry-standard [Cardano Serialization Lib (CSL)](https://github.com/Emurgo/cardano-serialization-lib) via a thin Rust-C-Swift bridge.
 
 ## 🚀 Features
 
@@ -16,7 +16,7 @@ A high-performance Cardano SDK for Swift that works natively on **Linux**, **mac
 - **✅ Async/Await Support**: Full async/await API with Swift Concurrency for non-blocking operations (3.24x speedup).
 - **Complete Documentation**: 200+ documented methods with parameters, returns, and error handling.
 - **Native Performance**: No JavaScript or Node.js required. Runs at Rust speed.
-- **Universal Support**: One codebase for server-side Swift (Linux), desktop (macOS), and mobile (iOS).
+- **Universal Support**: One codebase for mobile (iOS/watchOS), desktop (macOS), entertainment (tvOS), and server-side Swift (Linux).
 - **Zero Configuration**: Automated build system for the native bridge.
 
 ## 🛠 Installation
@@ -27,7 +27,7 @@ Add the following to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/kxpone/cardano-swift.git", from: "0.1.0")
+    .package(url: "https://github.com/kxpone/cardano-swift.git", from: "0.2.1")
 ]
 ```
 
@@ -62,8 +62,27 @@ carthage update
 
 The SDK features an **Auto-Bootstrap** system:
 1. **Zero Configuration**: When you add the package, it detects your OS (Linux/macOS/iOS) and architecture.
-2. **Native Performance**: It compiles the [CSL Rust Bridge](https://github.com/Emurgo/csl-mobile-bridge) specifically for your machine.
+2. **Pinned Core**: It compiles the [CSL Rust Bridge](https://github.com/Emurgo/csl-mobile-bridge) (fixed at version `9.0.1`) specifically for your machine. This ensures compatibility with Cardano Serialization Lib `15.0.3`.
 3. **No External Dependencies**: You don't need to manually install any pre-compiled binaries or manage system libraries.
+
+### 🍎 Apple Platform Support (tvOS & watchOS)
+
+While **iOS** and **macOS** are supported on the stable Rust toolchain, **tvOS** and **watchOS** targets are currently Tier 2/3 and require the **nightly** toolchain.
+
+To enable support for these platforms, ensure you have the nightly toolchain and relevant targets installed:
+
+```bash
+rustup toolchain install nightly
+rustup target add aarch64-apple-tvos aarch64-apple-tvos-sim --toolchain nightly
+rustup target add aarch64-apple-watchos aarch64-apple-watchos-sim --toolchain nightly
+```
+
+During build, the `init.sh` script will automatically:
+1. Patch the underlying `rand_os` dependency to enable tvOS/watchOS support (these platforms were missing from the crate's platform checks)
+2. Use `-Z build-std=core,alloc,std` to compile the Rust standard library from source for unsupported targets
+3. Link with the Apple Security framework which is universally available on all Apple platforms
+
+**Technical Details:** The build patches `rand_os v0.1.2` to recognize `tvOS` and `watchOS` as valid targets, allowing it to use the existing macOS/iOS implementation which leverages `SecRandomCopyBytes` from the Security framework.
 
 ## 🧪 Testing
 
@@ -199,7 +218,8 @@ The build system will automatically bundle these into the framework during the i
 | Document | Description |
 |----------|-------------|
 | **[Plutus Scripts Guide](./docs/PLUTUS_SCRIPTS.md)** | Complete Plutus V1/V2/V3 smart contract guide with cost analysis & examples |
-| **[CHANGELOG](./CHANGELOG.md)** | Version history and feature releases |
+| **[Concurrency & Performance](./docs/CONCURRENCY.md)** | High-performance async/await patterns, benchmarks, and 3.24x speedup analysis |
+| **[CHANGELOG](./docs/CHANGELOG.md)** | Version history and feature releases |
 
 ### Quick Links
 
@@ -210,9 +230,35 @@ The build system will automatically bundle these into the framework during the i
 
 ---
 
+## 📊 Comparison
+
+| Feature | [cardano-swift](https://github.com/kxpone/cardano-swift) | [CardanoKit](https://github.com/TokeoPay/CardanoKit) | [Cardano.swift](https://github.com/tesseract-one/Cardano.swift) | [swift-cardano-core](https://github.com/Kingpin-Apps/swift-cardano-core) | [CSL Bridge](https://github.com/Emurgo/csl-mobile-bridge) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **macOS Support** | ✅ (10.15+) | ✅ (15.0+) | ✅ (10.15+) | ✅ (14.0+) | ✅* |
+| **iOS Support** | ✅ (13.0+) | ✅ (17.0+) | ✅ (13.0+) | ✅ (14.0+) | ✅ |
+| **tvOS Support** | ✅ (13.0+) | ❌ | ❌ | ✅ (14.0+) | ✅* |
+| **watchOS Support** | ✅ (6.0+) | ❌ | ❌ | ✅ (7.0+) | ✅* |
+| **Linux Support** | ✅ (Universal) | ❌ | ⚠️ (Manual) | ✅ | ✅* |
+| **Async/Await Support** | ✅ (Parallelized) | ✅ (Standard) | ❌ | ⚠️ (Basic) | ❌ |
+| **BIP39 Mnemonics** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Transaction Builder** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Plutus V1/V2 Support** | ✅ | ⚠️ (Partial) | ❌ (Alonzo) | ✅ | ✅ |
+| **Plutus V3 Support** | ✅ | ❌ | ❌ | ⚠️ (In-progress) | ✅ |
+| **CIP-30 Data Signing** | ✅ | ✅ | ❌ | ❌ | ✅ |
+| **Native Script Support** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Pure Swift (No Rust)** | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **Pinned Core Stability** | ✅ (v9.0.1) | ❌ (Alpha) | ❌ (Legacy) | ✅ (N/A) | ❌ |
+| **Latest Era (Conway)** | ✅ | ✅ | ❌ | ✅ | ✅ |
+
+*\* Supports any platform where Rust can be compiled (requires manual compilation for non-mobile targets).*
+
+---
+
 ## 🏁 Roadmap
 
-### 🏁 Done (v0.2.0)
+### 🏁 Done (v0.2.1)
+- [x] **Universal Apple Support**: Native support for **tvOS** and **watchOS** platforms.
+- [x] **Pinned Core Stability**: Native bridge core pinned to **v9.0.1** (CSL 15.0.3).
 - [x] **Async/Await API**: Complete Swift Concurrency support (3.24x speedup for batch operations).
 - [x] **Complete Documentation**: 200+ documented methods with parameters, returns, and errors.
 - [x] **Universal Linux/macOS/iOS support** via unified Rust bridge.
@@ -225,12 +271,12 @@ The build system will automatically bundle these into the framework during the i
 - [x] **Memory Safety**: Automated RPtr management and error handling from Rust core.
 - [x] **CIP-30 Compatibility**: Data signing and verification.
 - [x] **Plutus V1/V2/V3**: Full support for scripts, datums, and redeemers.
+- [x] **Min-ADA Logic**: Automated calculation of minimum required ADA for multi-asset outputs.
 
 ### 📅 To Do
 - [ ] **Governance (CIP-1694)**: Support for DRep registration, voting, and delegation (Conway era).
 - [ ] **Native Scripts**: Multi-signature support (ALL, ANY, N-of-M) and time-locks.
 - [ ] **Pluggable Providers**: Protocol-based interface for easy integration with Blockfrost, Koios, or Ogmios.
-- [ ] **Min-ADA Logic**: Automated calculation of minimum required ADA for multi-asset outputs.
 - [ ] **Unified Documentation**: Full API reference via DocC with detailed code examples.
 - [ ] **Collateral & Change**: Automated collateral selection for smart contract interactions.
 

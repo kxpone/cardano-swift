@@ -3,20 +3,49 @@ set -e
 
 # Configuration
 BRIDGE_REPO="https://github.com/Emurgo/csl-mobile-bridge.git"
+BRIDGE_TAG="9.0.1" # Current stable release supporting CSL 15+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="$PROJECT_ROOT/.build/native-bridge"
 DEST_DIR="$PROJECT_ROOT/Sources/CCardano"
 
-echo "Step 1: Cloning/Updating native Cardano Rust bridge..."
+echo "Step 1: Cloning/Updating native Cardano Rust bridge (version $BRIDGE_TAG)..."
 if [ ! -d "$BUILD_DIR" ]; then
-    git clone --depth 1 "$BRIDGE_REPO" "$BUILD_DIR"
+    git clone --depth 1 --branch "$BRIDGE_TAG" "$BRIDGE_REPO" "$BUILD_DIR"
 else
-    echo "Bridge repo already exists, skipping clone."
+    echo "Bridge repo already exists, ensuring it is on $BRIDGE_TAG..."
+    cd "$BUILD_DIR"
+    git fetch origin tag "$BRIDGE_TAG" --depth 1
+    git checkout "$BRIDGE_TAG"
+    cd -
+fi
+
+# Check if tvOS or watchOS targets are installed (requires patching)
+echo "Step 1b: Checking for tvOS/watchOS targets..."
+HAS_TVOS=false
+HAS_WATCHOS=false
+if [[ "$(uname)" == "Darwin" ]]; then
+    rustup target list --installed | grep -q "aarch64-apple-tvos" && HAS_TVOS=true
+    rustup target list --installed | grep -q "aarch64-apple-watchos" && HAS_WATCHOS=true
+fi
+
+if [ "$HAS_TVOS" = true ] || [ "$HAS_WATCHOS" = true ]; then
+    echo "tvOS/watchOS targets detected. Applying patches..."
+    bash "$SCRIPT_DIR/patch-rand-os.sh" "$BUILD_DIR/rust/Cargo.toml" || {
+        echo "Warning: Patching script encountered issues, continuing with build..."
+    }
+else
+    echo "No tvOS/watchOS targets detected. Skipping patches."
 fi
 
 echo "Step 2: Building Rust static library..."
 cd "$BUILD_DIR/rust"
+
+# Force modern dependency versions that support tvOS/watchOS
+# Update lockfile to latest compatible versions
+# Make sure RUSTFLAGS from tvOS/watchOS is not interfering with stable builds
+unset RUSTFLAGS
+cargo update
 
 # Build for current host system (Linux/macOS)
 echo "Building for host architecture..."
@@ -26,18 +55,67 @@ else
     echo "Host binary already exists, skipping build (run 'cargo clean' in $BUILD_DIR/rust to force rebuild)."
 fi
 
-# If on macOS, also attempt to build for iOS if rustup targets are available
+# If on macOS, also attempt to build for iOS platforms
 if [[ "$(uname)" == "Darwin" ]]; then
+    # iOS uses stable Rust - ensure RUSTFLAGS is clear of nightly features
+    unset RUSTFLAGS
+    
     if rustup target list --installed | grep -q "aarch64-apple-ios"; then
         echo "Building for iOS (aarch64)..."
-        cargo build --target aarch64-apple-ios --release
+        cargo +stable build --target aarch64-apple-ios --release
         mkdir -p "$DEST_DIR/ios"
         cp "$BUILD_DIR/rust/target/aarch64-apple-ios/release/libreact_native_haskell_shelley.a" "$DEST_DIR/ios/"
     fi
-    if rustup target list --installed | grep -q "x86_64-apple-ios"; then
-        echo "Building for iOS Simulator (x86_64)..."
-        cargo build --target x86_64-apple-ios --release
-        # Note: In a real world scenario, you'd use lipo to create a fat binary or XCFramework
+    if rustup target list --installed | grep -q "apple-ios"; then
+        IOS_SIM_LIBS=""
+        for target in aarch64-apple-ios-sim x86_64-apple-ios; do
+            if rustup target list --installed | grep -q "$target"; then
+                echo "Building for iOS Simulator ($target)..."
+                cargo +stable build --target $target --release
+                IOS_SIM_LIBS="$IOS_SIM_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
+            fi
+        done
+        # No lipo here as typically we use XCframeworks or single architectures for sim in CI
+    fi
+
+    # tvOS Support - using nightly with build-std for unsupported targets
+    if rustup target list --installed | grep -q "aarch64-apple-tvos"; then
+        TVOS_LIBS=""
+        for target in aarch64-apple-tvos aarch64-apple-tvos-sim; do
+            if rustup target list --installed | grep -q "$target"; then
+                echo "Building for tvOS ($target) with build-std..."
+                # Use nightly and build std from source for tvOS targets
+                RUSTFLAGS="-Z build-std=core,alloc,std" cargo +nightly build --target $target --release 2>&1 || {
+                    echo "Warning: tvOS build for $target failed, skipping..."
+                    continue
+                }
+                TVOS_LIBS="$TVOS_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
+            fi
+        done
+        if [ ! -z "$TVOS_LIBS" ]; then
+            mkdir -p "$DEST_DIR/tvos"
+            lipo -create $TVOS_LIBS -output "$DEST_DIR/tvos/libreact_native_haskell_shelley.a"
+        fi
+    fi
+
+    # watchOS Support - using nightly with build-std for unsupported targets
+    if rustup target list --installed | grep -q "aarch64-apple-watchos"; then
+        WATCH_LIBS=""
+        for target in aarch64-apple-watchos aarch64-apple-watchos-sim; do
+            if rustup target list --installed | grep -q "$target"; then
+                echo "Building for watchOS ($target) with build-std..."
+                # Use nightly and build std from source for watchOS targets
+                RUSTFLAGS="-Z build-std=core,alloc,std" cargo +nightly build --target $target --release 2>&1 || {
+                    echo "Warning: watchOS build for $target failed, skipping..."
+                    continue
+                }
+                WATCH_LIBS="$WATCH_LIBS $BUILD_DIR/rust/target/$target/release/libreact_native_haskell_shelley.a"
+            fi
+        done
+        if [ ! -z "$WATCH_LIBS" ]; then
+            mkdir -p "$DEST_DIR/watchos"
+            lipo -create $WATCH_LIBS -output "$DEST_DIR/watchos/libreact_native_haskell_shelley.a"
+        fi
     fi
 fi
 

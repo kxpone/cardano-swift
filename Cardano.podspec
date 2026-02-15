@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
 
   s.swift_versions                      = '5.3'
   s.name                                = 'Cardano'
-  s.version                             = '0.1.0'
+  s.version                             = '0.2.1'
   s.summary                             = 'Cardano Swift SDK'
   s.homepage                            = 'https://github.com/kxpone/cardano-swift'
   s.license                             = 'MIT'
@@ -10,6 +10,9 @@ Pod::Spec.new do |s|
   s.social_media_url                    = 'https://twitter.com/ihellc'
   s.requires_arc                        = true
   s.ios.deployment_target               = '13.0'
+  s.osx.deployment_target               = '10.15'
+  s.tvos.deployment_target              = '13.0'
+  s.watchos.deployment_target           = '6.0'
                 
   s.source                              = { :git => 'https://github.com/kxpone/cardano-swift.git', :tag => s.version.to_s }
 
@@ -29,6 +32,14 @@ Pod::Spec.new do |s|
 
   s.osx.pod_target_xcconfig = {
     'LIBRARY_SEARCH_PATHS' => '$(PODS_TARGET_SRCROOT)/Sources/CCardano/darwin'
+  }
+
+  s.tvos.pod_target_xcconfig = {
+    'LIBRARY_SEARCH_PATHS' => '$(PODS_TARGET_SRCROOT)/Sources/CCardano/tvos'
+  }
+
+  s.watchos.pod_target_xcconfig = {
+    'LIBRARY_SEARCH_PATHS' => '$(PODS_TARGET_SRCROOT)/Sources/CCardano/watchos'
   }
 
   s.preserve_paths = 'Sources/CCardano/**/*'

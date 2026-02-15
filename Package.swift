@@ -7,7 +7,9 @@ let package = Package(
     name: "Cardano",
     platforms: [
         .iOS(.v13),
-        .macOS(.v10_15)
+        .macOS(.v10_15),
+        .tvOS(.v13),
+        .watchOS(.v6)
     ],
     products: [
         .library(
@@ -31,7 +33,10 @@ let package = Package(
             linkerSettings: [
                 .linkedLibrary("react_native_haskell_shelley"),
                 .unsafeFlags(["-L", "Sources/CCardano/linux"], .when(platforms: [.linux])),
-                .unsafeFlags(["-L", "Sources/CCardano/darwin"], .when(platforms: [.macOS, .iOS, .watchOS, .tvOS])),
+                .unsafeFlags(["-L", "Sources/CCardano/darwin"], .when(platforms: [.macOS])),
+                .unsafeFlags(["-L", "Sources/CCardano/ios"], .when(platforms: [.iOS])),
+                .unsafeFlags(["-L", "Sources/CCardano/watchos"], .when(platforms: [.watchOS])),
+                .unsafeFlags(["-L", "Sources/CCardano/tvos"], .when(platforms: [.tvOS])),
                 .linkedLibrary("dl", .when(platforms: [.linux])),
                 .linkedLibrary("pthread", .when(platforms: [.linux])),
                 .linkedLibrary("m", .when(platforms: [.linux]))

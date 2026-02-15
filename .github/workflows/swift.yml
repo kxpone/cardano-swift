@@ -2,9 +2,9 @@ name: Swift CI
 
 on:
   push:
-    branches: [ develop, main ]
+    branches: [ develop, main, tests-targets ]
   pull_request:
-    branches: [ develop, main ]
+    branches: [ develop, main, tests-targets ]
 
 jobs:
   linux:
@@ -31,6 +31,44 @@ jobs:
     - name: Run tests
       run: swift test -v
 
+  tvos:
+    name: tvOS
+    runs-on: macos-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v4
+    - name: Bootstrap
+      run: |
+        rustup toolchain install nightly
+        rustup target add --toolchain nightly aarch64-apple-tvos aarch64-apple-tvos-sim
+        bash scripts/init.sh
+    - name: Build tvOS
+      run: |
+        xcodebuild build \
+          -scheme Cardano \
+          -destination 'generic/platform=tvOS' \
+          -sdk appletvos \
+          CODE_SIGNING_ALLOWED=NO
+
+  watchos:
+    name: watchOS
+    runs-on: macos-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v4
+    - name: Bootstrap
+      run: |
+        rustup toolchain install nightly
+        rustup target add --toolchain nightly aarch64-apple-watchos aarch64-apple-watchos-sim
+        bash scripts/init.sh
+    - name: Build watchOS
+      run: |
+        xcodebuild build \
+          -scheme Cardano \
+          -destination 'generic/platform=watchOS' \
+          -sdk watchos \
+          CODE_SIGNING_ALLOWED=NO
+
   ios:
     name: iOS
     runs-on: macos-latest
@@ -38,7 +76,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: Bootstrap
       run: |
-        rustup target add aarch64-apple-ios x86_64-apple-ios
+        rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
         bash scripts/init.sh
     - name: Build iOS
       run: |
@@ -47,3 +85,5 @@ jobs:
           -destination 'generic/platform=iOS' \
           -sdk iphoneos \
           CODE_SIGNING_ALLOWED=NO
+
+
