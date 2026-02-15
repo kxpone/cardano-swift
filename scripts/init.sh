@@ -3,16 +3,21 @@ set -e
 
 # Configuration
 BRIDGE_REPO="https://github.com/Emurgo/csl-mobile-bridge.git"
+BRIDGE_TAG="9.0.1" # Current stable release supporting CSL 15+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 BUILD_DIR="$PROJECT_ROOT/.build/native-bridge"
 DEST_DIR="$PROJECT_ROOT/Sources/CCardano"
 
-echo "Step 1: Cloning/Updating native Cardano Rust bridge..."
+echo "Step 1: Cloning/Updating native Cardano Rust bridge (version $BRIDGE_TAG)..."
 if [ ! -d "$BUILD_DIR" ]; then
-    git clone --depth 1 "$BRIDGE_REPO" "$BUILD_DIR"
+    git clone --depth 1 --branch "$BRIDGE_TAG" "$BRIDGE_REPO" "$BUILD_DIR"
 else
-    echo "Bridge repo already exists, skipping clone."
+    echo "Bridge repo already exists, ensuring it is on $BRIDGE_TAG..."
+    cd "$BUILD_DIR"
+    git fetch origin tag "$BRIDGE_TAG" --depth 1
+    git checkout "$BRIDGE_TAG"
+    cd -
 fi
 
 echo "Step 2: Building Rust static library..."
@@ -65,7 +70,7 @@ if [[ "$(uname)" == "Darwin" ]]; then
     # watchOS Support
     if rustup target list --installed | grep -q "apple-watchos"; then
         WATCH_LIBS=""
-        for target in arm64_32-apple-watchos armv7k-apple-watchos aarch64-apple-watchos-sim x86_64-apple-watchos-sim; do
+        for target in aarch64-apple-watchos aarch64-apple-watchos-sim arm64_32-apple-watchos armv7k-apple-watchos x86_64-apple-watchos-sim; do
             if rustup target list --installed | grep -q "$target"; then
                 echo "Building for watchOS ($target)..."
                 cargo build --target $target --release

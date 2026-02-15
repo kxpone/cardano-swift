@@ -54,10 +54,13 @@ jobs:
     continue-on-error: true
     steps:
     - uses: actions/checkout@v4
+    - name: Setup Nightly Rust
+      run: |
+        rustup toolchain install nightly
+        rustup default nightly
     - name: Bootstrap
       run: |
-        # tvOS targets are Tier 3 and may not be available on stable toolchain
-        rustup target add aarch64-apple-tvos aarch64-apple-tvos-sim x86_64-apple-tvos || true
+        rustup target add aarch64-apple-tvos aarch64-apple-tvos-sim
         bash scripts/init.sh
     - name: Build tvOS
       run: |
@@ -73,10 +76,13 @@ jobs:
     continue-on-error: true
     steps:
     - uses: actions/checkout@v4
+    - name: Setup Nightly Rust
+      run: |
+        rustup toolchain install nightly
+        rustup default nightly
     - name: Bootstrap
       run: |
-        # watchOS targets are Tier 3 and may not be available on stable toolchain
-        rustup target add arm64_32-apple-watchos armv7k-apple-watchos aarch64-apple-watchos-sim x86_64-apple-watchos-sim || true
+        rustup target add aarch64-apple-watchos aarch64-apple-watchos-sim
         bash scripts/init.sh
     - name: Build watchOS
       run: |

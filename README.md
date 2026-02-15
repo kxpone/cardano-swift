@@ -1,14 +1,14 @@
-# Cardano Swift SDK (Universal Native)
+# Cardano Swift (Universal)
 
 [![Swift CI](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml/badge.svg)](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml)
 [![Swift Version](https://img.shields.io/badge/Swift-5.3+-orange.svg)](https://swift.org)
-[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20Linux-blue.svg)](https://github.com/kxpone/cardano-swift)
+[![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20tvOS%20%7C%20watchOS%20%7C%20Linux-blue.svg)](https://github.com/kxpone/cardano-swift)
 [![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 [![CocoaPods Compatible](https://img.shields.io/cocoapods/v/Cardano.svg)](https://cocoapods.org/pods/Cardano)
 [![License](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
 
-A high-performance Cardano SDK for Swift that works natively on **Linux**, **macOS**, and **iOS**. It bridges the industry-standard [Cardano Serialization Lib (CSL)](https://github.com/Emurgo/cardano-serialization-lib) via a thin Rust-C-Swift bridge.
+A high-performance Cardano SDK for Swift that works natively on **iOS**, **macOS**, **tvOS**, **watchOS**, and **Linux**. It bridges the industry-standard [Cardano Serialization Lib (CSL)](https://github.com/Emurgo/cardano-serialization-lib) via a thin Rust-C-Swift bridge.
 
 ## 🚀 Features
 
@@ -16,7 +16,7 @@ A high-performance Cardano SDK for Swift that works natively on **Linux**, **mac
 - **✅ Async/Await Support**: Full async/await API with Swift Concurrency for non-blocking operations (3.24x speedup).
 - **Complete Documentation**: 200+ documented methods with parameters, returns, and error handling.
 - **Native Performance**: No JavaScript or Node.js required. Runs at Rust speed.
-- **Universal Support**: One codebase for server-side Swift (Linux), desktop (macOS), and mobile (iOS).
+- **Universal Support**: One codebase for mobile (iOS/watchOS), desktop (macOS), entertainment (tvOS), and server-side Swift (Linux).
 - **Zero Configuration**: Automated build system for the native bridge.
 
 ## 🛠 Installation
@@ -62,8 +62,22 @@ carthage update
 
 The SDK features an **Auto-Bootstrap** system:
 1. **Zero Configuration**: When you add the package, it detects your OS (Linux/macOS/iOS) and architecture.
-2. **Native Performance**: It compiles the [CSL Rust Bridge](https://github.com/Emurgo/csl-mobile-bridge) specifically for your machine.
+2. **Pinned Core**: It compiles the [CSL Rust Bridge](https://github.com/Emurgo/csl-mobile-bridge) (fixed at version `9.0.1`) specifically for your machine. This ensures compatibility with Cardano Serialization Lib `15.0.3`.
 3. **No External Dependencies**: You don't need to manually install any pre-compiled binaries or manage system libraries.
+
+### 🍎 Apple Platform Support (tvOS & watchOS)
+
+While **iOS** and **macOS** are supported on the stable Rust toolchain, **tvOS** and **watchOS** targets are currently Tier 2/3 and require the **nightly** toolchain.
+
+To enable support for these platforms, ensure you have the nightly toolchain and relevant targets installed:
+
+```bash
+rustup toolchain install nightly
+rustup target add aarch64-apple-tvos aarch64-apple-tvos-sim --toolchain nightly
+rustup target add aarch64-apple-watchos aarch64-apple-watchos-sim --toolchain nightly
+```
+
+During build, the `init.sh` script will automatically detect these targets if you are running in a nightly environment.
 
 ## 🧪 Testing
 
@@ -199,7 +213,8 @@ The build system will automatically bundle these into the framework during the i
 | Document | Description |
 |----------|-------------|
 | **[Plutus Scripts Guide](./docs/PLUTUS_SCRIPTS.md)** | Complete Plutus V1/V2/V3 smart contract guide with cost analysis & examples |
-| **[CHANGELOG](./CHANGELOG.md)** | Version history and feature releases |
+| **[Concurrency & Performance](./docs/CONCURRENCY.md)** | High-performance async/await patterns, benchmarks, and 3.24x speedup analysis |
+| **[CHANGELOG](./docs/CHANGELOG.md)** | Version history and feature releases |
 
 ### Quick Links
 
@@ -214,17 +229,20 @@ The build system will automatically bundle these into the framework during the i
 
 | Feature | [cardano-swift](https://github.com/kxpone/cardano-swift) | [CardanoKit](https://github.com/TokeoPay/CardanoKit) | [Cardano.swift](https://github.com/tesseract-one/Cardano.swift) | [swift-cardano-core](https://github.com/Kingpin-Apps/swift-cardano-core) | [CSL Bridge](https://github.com/Emurgo/csl-mobile-bridge) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **macOS Support** | ✅ | ✅ | ✅ | ✅ | ✅* |
-| **iOS Support** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Linux Support** | ✅ | ❌ | ✅ | ✅ | ✅* |
+| **macOS Support** | ✅ (10.15+) | ✅ (15.0+) | ✅ (10.15+) | ✅ (14.0+) | ✅* |
+| **iOS Support** | ✅ (13.0+) | ✅ (17.0+) | ✅ (13.0+) | ✅ (14.0+) | ✅ |
+| **tvOS Support** | ✅ (13.0+) | ❌ | ❌ | ✅ (14.0+) | ✅* |
+| **watchOS Support** | ✅ (6.0+) | ❌ | ❌ | ✅ (7.0+) | ✅* |
+| **Linux Support** | ✅ (Universal) | ❌ | ⚠️ (Manual) | ✅ | ✅* |
+| **Async/Await Support** | ✅ (Parallelized) | ✅ (Standard) | ❌ | ⚠️ (Basic) | ❌ |
 | **BIP39 Mnemonics** | ✅ | ✅ | ✅ | ✅ | ✅ |
 | **Transaction Builder** | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Plutus Script Support** | ✅ | ⚠️ | ❌ | ✅ | ✅ |
-| **Native Script Support** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Plutus V1/V2 Support** | ✅ | ⚠️ (Partial) | ❌ (Alonzo) | ✅ | ✅ |
+| **Plutus V3 Support** | ✅ | ❌ | ❌ | ⚠️ (In-progress) | ✅ |
 | **CIP-30 Data Signing** | ✅ | ✅ | ❌ | ❌ | ✅ |
-| **Built-in Networking** | ❌ | ❌ | ✅ | ❌ | ❌ |
-| **Multi-Asset Support** | ✅ | ✅ | ❌ | ✅ | ✅ |
-| **Pure Swift (No C/Rust)** | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **Native Script Support** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Pure Swift (No Rust)** | ❌ | ❌ | ❌ | ✅ | ❌ |
+| **Pinned Core Stability** | ✅ (v9.0.1) | ❌ (Alpha) | ❌ (Legacy) | ✅ (N/A) | ❌ |
 | **Latest Era (Conway)** | ✅ | ✅ | ❌ | ✅ | ✅ |
 
 *\* Supports any platform where Rust can be compiled (requires manual compilation for non-mobile targets).*
