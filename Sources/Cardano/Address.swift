@@ -116,23 +116,24 @@ public class Address {
     ///   - networkId: 0 for Testnet, 1 for Mainnet.
     ///   - credentials: Array of payment credentials.
     /// - Returns: Array of enterprise addresses in the same order as credentials.
-    public static func createEnterpriseAddressesAsync(
+    public static func enterprise(
         networkId: UInt8,
         credentials: [Credential]
     ) async throws -> [Address] {
-        return try await withThrowingTaskGroup(of: Address.self) { group in
-            for credential in credentials {
+        return try await withThrowingTaskGroup(of: (Int, Address).self) { group in
+            for (index, credential) in credentials.enumerated() {
                 group.addTask {
-                    return try await Task.detached(priority: .userInitiated) {
+                    let addr = try await Task.detached(priority: .userInitiated) {
                         try Address.enterprise(networkId: networkId, paymentCredential: credential)
                     }.value
+                    return (index, addr)
                 }
             }
-            var addresses: [Address] = []
-            for try await address in group {
-                addresses.append(address)
+            var results = Array<Address?>(repeating: nil, count: credentials.count)
+            for try await (index, address) in group {
+                results[index] = address
             }
-            return addresses
+            return results.compactMap { $0 }
         }
     }
     
@@ -141,23 +142,24 @@ public class Address {
     ///   - networkId: 0 for Testnet, 1 for Mainnet.
     ///   - credentials: Array of stake credentials.
     /// - Returns: Array of reward addresses in the same order as credentials.
-    public static func createRewardAddressesAsync(
+    public static func reward(
         networkId: UInt8,
         credentials: [Credential]
     ) async throws -> [Address] {
-        return try await withThrowingTaskGroup(of: Address.self) { group in
-            for credential in credentials {
+        return try await withThrowingTaskGroup(of: (Int, Address).self) { group in
+            for (index, credential) in credentials.enumerated() {
                 group.addTask {
-                    return try await Task.detached(priority: .userInitiated) {
+                    let addr = try await Task.detached(priority: .userInitiated) {
                         try Address.reward(networkId: networkId, stakeCredential: credential)
                     }.value
+                    return (index, addr)
                 }
             }
-            var addresses: [Address] = []
-            for try await address in group {
-                addresses.append(address)
+            var tempResults = [Int: Address]()
+            for try await (index, address) in group {
+                tempResults[index] = address
             }
-            return addresses
+            return (0..<credentials.count).compactMap { tempResults[$0] }
         }
     }
 }

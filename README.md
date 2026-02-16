@@ -13,7 +13,7 @@ A high-performance Cardano SDK for Swift that works natively on **iOS**, **macOS
 ## 🚀 Features
 
 - **Pure Swift API**: High-level abstractions for Wallets, Addresses, and Transactions.
-- **✅ Async/Await Support**: Full async/await API with Swift Concurrency for non-blocking operations (3.24x speedup).
+- **✅ Async/Await Support**: Full async/await API with Swift Concurrency for multi-core performance (up to 7.5x speedup).
 - **Complete Documentation**: 200+ documented methods with parameters, returns, and error handling.
 - **Native Performance**: No JavaScript or Node.js required. Runs at Rust speed.
 - **Universal Support**: One codebase for mobile (iOS/watchOS), desktop (macOS), entertainment (tvOS), and server-side Swift (Linux).
@@ -164,10 +164,10 @@ let body = try builder.build(changeAddress: myAddress)
 ```
 ### Async/Await: Batch Address Generation
 ```swift
-// Generate 100 addresses in parallel (3.24x faster than sequential)
+// Generate 100 addresses in parallel (up to 7.5x faster than sequential)
 let wallet = try Wallet(mnemonic: Mnemonic(phrase: words), networkId: 0)
 
-let addresses = try await wallet.getAddressesAsync(account: 0, startIndex: 0, count: 100)
+let addresses = try await wallet.getAddress(account: 0, startIndex: 0, count: 100)
 print("Generated \(addresses.count) addresses concurrently")
 ```
 
@@ -175,7 +175,7 @@ print("Generated \(addresses.count) addresses concurrently")
 ```swift
 // Serialize multiple transactions in parallel (1.5x speedup for 50+ transactions)
 let transactions: [Transaction] = /* ... */
-let hexStrings = try await Transaction.serializeBatchAsync(transactions: transactions)
+let hexStrings = try await Transaction.toHex(transactions: transactions)
 
 for (index, hex) in hexStrings.enumerated() {
     print("TX \(index): \(hex.prefix(32))...")
@@ -186,7 +186,7 @@ for (index, hex) in hexStrings.enumerated() {
 ```swift
 // Validate 1000 mnemonics in parallel (non-blocking)
 let phrases = [/* ... 1000 phrases ... */]
-let validationResults = try await Mnemonic.validateMultipleAsync(phrases: phrases)
+let validationResults = try await Mnemonic.validate(phrases: phrases)
 
 let validCount = validationResults.filter { $0 }.count
 print("\(validCount)/\(phrases.count) mnemonics are valid")
@@ -196,7 +196,7 @@ print("\(validCount)/\(phrases.count) mnemonics are valid")
 ```swift
 // Sign data with non-blocking UI updates
 let data = "message to sign".data(using: .utf8)!
-let signature = try await wallet.signDataAsync(
+let signature = try await wallet.signData(
     data: data,
     withAddress: address.toBech32()
 )
@@ -218,7 +218,7 @@ The build system will automatically bundle these into the framework during the i
 | Document | Description |
 |----------|-------------|
 | **[Plutus Scripts Guide](./docs/PLUTUS_SCRIPTS.md)** | Complete Plutus V1/V2/V3 smart contract guide with cost analysis & examples |
-| **[Concurrency & Performance](./docs/CONCURRENCY.md)** | High-performance async/await patterns, benchmarks, and 3.24x speedup analysis |
+| **[Concurrency & Performance](./docs/CONCURRENCY.md)** | High-performance async/await patterns, benchmarks, and 7.5x speedup analysis |
 | **[CHANGELOG](./docs/CHANGELOG.md)** | Version history and feature releases |
 
 ### Quick Links
@@ -259,7 +259,7 @@ The build system will automatically bundle these into the framework during the i
 ### 🏁 Done (v0.2.1)
 - [x] **Universal Apple Support**: Native support for **tvOS** and **watchOS** platforms.
 - [x] **Pinned Core Stability**: Native bridge core pinned to **v9.0.1** (CSL 15.0.3).
-- [x] **Async/Await API**: Complete Swift Concurrency support (3.24x speedup for batch operations).
+- [x] **Async/Await API**: Complete Swift Concurrency support (7.5x speedup for batch operations).
 - [x] **Complete Documentation**: 200+ documented methods with parameters, returns, and errors.
 - [x] **Universal Linux/macOS/iOS support** via unified Rust bridge.
 - [x] **Auto-Bootstrap system** for SPM and CocoaPods.

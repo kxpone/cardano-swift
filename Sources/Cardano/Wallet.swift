@@ -81,7 +81,7 @@ public class Wallet {
     ///   - index: The address index within the account.
     /// - Returns: An `Address` object representing the derived base address.
     /// - Throws: CardanoError if derivation fails.
-    public func getAddressAsync(account: UInt32 = 0, index: UInt32 = 0) async throws -> Address {
+    public func getAddress(account: UInt32 = 0, index: UInt32 = 0) async throws -> Address {
         return try await Task.detached(priority: .userInitiated) {
             try self.getAddress(account: account, index: index)
         }.value
@@ -94,7 +94,7 @@ public class Wallet {
     ///   - address: The intended address (informative).
     /// - Returns: A `DataSignature` containing the hex-encoded signature and public key.
     /// - Throws: CardanoError if signing fails.
-    public func signDataAsync(data: Data, withAddress address: String) async throws -> DataSignature {
+    public func signData(data: Data, withAddress address: String) async throws -> DataSignature {
         return try await Task.detached(priority: .userInitiated) {
             try self.signData(data: data, withAddress: address)
         }.value
@@ -108,7 +108,7 @@ public class Wallet {
     ///   - count: The number of addresses to derive.
     /// - Returns: An array of `Address` objects in order.
     /// - Throws: CardanoError if derivation fails.
-    public func getAddressesAsync(account: UInt32 = 0, startIndex: UInt32 = 0, count: Int) async throws -> [Address] {
+    public func getAddress(account: UInt32 = 0, startIndex: UInt32 = 0, count: Int) async throws -> [Address] {
         let addresses = try await withThrowingTaskGroup(of: (Int, Address).self, returning: [Address].self) { group in
             for i in 0..<count {
                 let index = startIndex + UInt32(i)
@@ -134,7 +134,7 @@ public class Wallet {
     ///   - dataList: Array of tuples (data to sign, address).
     /// - Returns: Array of `DataSignature` objects in the same order as input.
     /// - Throws: CardanoError if signing fails.
-    public func signDataBatchAsync(dataList: [(data: Data, address: String)]) async throws -> [DataSignature] {
+    public func signData(dataList: [(data: Data, address: String)]) async throws -> [DataSignature] {
         let signatures = try await withThrowingTaskGroup(of: (Int, DataSignature).self, returning: [DataSignature].self) { group in
             for (idx, item) in dataList.enumerated() {
                 group.addTask {

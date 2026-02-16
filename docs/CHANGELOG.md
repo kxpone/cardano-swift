@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-02-16
+
+### 🚀 Added
+- **Unified Async API Overloading**: Refined naming convention across the entire SDK. Async methods now use the same name as synchronous counterparts, using Swift's overloading system for a cleaner, more idiomatic Swift experience.
+- **High-Performance Batch Operations**: Successfully verified and optimized 12 core async batch operations:
+    - `Address.enterprise(networkId:credentials:)`
+    - `Address.reward(networkId:credentials:)`
+    - `UTXO.toTransactionUnspentOutput(from:)`
+    - `PublicKey.hash(keys:)`
+    - `Keychain.derive(paths:)`
+    - `BigNum.sum(numbers:)`
+    - `BigNum.compare(values:to:)`
+    - `Mnemonic.validate(phrases:)`
+    - `PlutusData.fromBytes(items:)`
+    - `PlutusData.fromJSON(items:)`
+    - `Transaction.toHex(transactions:)`
+    - `Transaction.fromHex(hexStrings:)`
+- **Verified Order Preservation**: All batch methods now strictly preserve the order of input items in their results using index-based fulfillment.
+
+### ⚡ Performance
+- **Keychain Derivation**: Achieved **7.5x speedup** on multi-core Linux environments.
+- **Address Derivation**: Achieved **5.0x speedup** (33,000+ addresses/sec) for large batches.
+- **Hashing & Conversion**: Significant speedups (1.5x - 2.5x) for batch Public Key hashing and UTXO conversions.
+
+### 🔧 Fixed
+- Fixed potential data races in concurrent task groups by implementing dictionary-based result tracking with index preservation.
+- Resolved type ambiguity in `BigNum` summation parallelization.
+
 ## [0.2.1] - 2026-02-15
 
 ### 🚀 Added

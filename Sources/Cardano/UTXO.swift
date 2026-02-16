@@ -62,20 +62,21 @@ public struct UTXO {
     /// Converts multiple UTXOs to TransactionUnspentOutput pointers asynchronously in parallel (2.5x speedup for 100+ UTXOs).
     /// - Parameter utxos: Array of UTXO objects to convert.
     /// - Returns: Array of RPtr pointers in the same order as input UTXOs.
-    public static func toUnspentOutputsAsync(from utxos: [UTXO]) async throws -> [RPtr] {
-        return try await withThrowingTaskGroup(of: RPtr.self) { group in
-            for utxo in utxos {
+    public static func toTransactionUnspentOutput(from utxos: [UTXO]) async throws -> [RPtr] {
+        return try await withThrowingTaskGroup(of: (Int, RPtr).self) { group in
+            for (index, utxo) in utxos.enumerated() {
                 group.addTask {
-                    return try await Task.detached(priority: .userInitiated) {
+                    let ptr = try await Task.detached(priority: .userInitiated) {
                         try utxo.toTransactionUnspentOutput()
                     }.value
+                    return (index, ptr)
                 }
             }
-            var results: [RPtr] = []
-            for try await ptr in group {
-                results.append(ptr)
+            var tempResults = [Int: RPtr]()
+            for try await (index, ptr) in group {
+                tempResults[index] = ptr
             }
-            return results
+            return (0..<utxos.count).compactMap { tempResults[$0] }
         }
     }
 }

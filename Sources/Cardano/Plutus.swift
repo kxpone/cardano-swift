@@ -81,13 +81,32 @@ public class PlutusScript {
         return Language(pointer: ptr)
     }
 
-deinit {
-var p = pointer
-csl_bridge_rptr_free(&p)
-}
+    /// Asynchronously hashes multiple Plutus scripts in parallel.
+    /// - Parameter scripts: Array of PlutusScript objects to hash.
+    /// - Returns: Array of ScriptHash objects maintaining input order.
+    public static func hash(scripts: [PlutusScript]) async throws -> [ScriptHash] {
+        return try await withThrowingTaskGroup(of: (Int, ScriptHash).self) { group in
+            for (index, script) in scripts.enumerated() {
+                group.addTask {
+                    let hash = try script.hash()
+                    return (index, hash)
+                }
+            }
+            var tempResults = [Int: ScriptHash]()
+            for try await (index, hash) in group {
+                tempResults[index] = hash
+            }
+            return (0..<scripts.count).compactMap { tempResults[$0] }
+        }
+    }
+
+    deinit {
+        var p = pointer
+        csl_bridge_rptr_free(&p)
+    }
 }
 
-/// Collection of Plutus scripts.
+/// A collection of Plutus scripts.
 public class PlutusScripts {
     internal let pointer: RPtr
 
@@ -295,7 +314,7 @@ public class PlutusData {
     /// Asynchronously parses multiple PlutusData objects from bytes in parallel
     /// - Parameter items: Array of (label, bytes) tuples to parse
     /// - Returns: Array of parsed PlutusData objects maintaining order
-    public static func fromBytesAsync(items: [(label: String, bytes: Data)]) async throws -> [PlutusData] {
+    public static func fromBytes(items: [(label: String, bytes: Data)]) async throws -> [PlutusData] {
         return try await withThrowingTaskGroup(
             of: (Int, PlutusData).self,
             returning: [PlutusData].self
@@ -319,7 +338,7 @@ public class PlutusData {
     /// Asynchronously parses multiple PlutusData objects from JSON in parallel
     /// - Parameter items: Array of (label, json) tuples to parse
     /// - Returns: Array of parsed PlutusData objects maintaining order
-    public static func fromJSONAsync(items: [(label: String, json: String)]) async throws -> [PlutusData] {
+    public static func fromJSON(items: [(label: String, json: String)]) async throws -> [PlutusData] {
         return try await withThrowingTaskGroup(
             of: (Int, PlutusData).self,
             returning: [PlutusData].self

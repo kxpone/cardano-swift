@@ -260,7 +260,7 @@ public class TransactionBuilder {
     /// Asynchronously adds a list of UTXOs as inputs.
     /// Executes input preparation on a background thread.
     /// - Parameter utxos: An array of `UTXO` objects available to spend.
-    public func addInputsAsync(from utxos: [UTXO]) async throws {
+    public func addInputs(from utxos: [UTXO]) async throws {
         return try await Task.detached(priority: .userInitiated) {
             try self.addInputs(from: utxos)
         }.value
@@ -270,7 +270,7 @@ public class TransactionBuilder {
     /// - Parameters:
     ///   - witness: The `PlutusWitness` containing script, datum, and redeemer.
     ///   - utxo: The `UTXO` to spend.
-    public func addPlutusScriptInputAsync(witness: PlutusWitness, utxo: UTXO) async throws {
+    public func addPlutusScriptInput(witness: PlutusWitness, utxo: UTXO) async throws {
         return try await Task.detached(priority: .userInitiated) {
             try self.addPlutusScriptInput(witness: witness, utxo: utxo)
         }.value
@@ -281,7 +281,7 @@ public class TransactionBuilder {
     /// Recommended for complex transactions with many inputs/outputs.
     /// - Parameter changeAddress: The `Address` where the remaining funds should be sent.
     /// - Returns: A `TransactionBody` containing the finalized transaction details.
-    public func buildAsync(changeAddress: Address) async throws -> TransactionBody {
+    public func build(changeAddress: Address) async throws -> TransactionBody {
         return try await Task.detached(priority: .userInitiated) {
             try self.build(changeAddress: changeAddress)
         }.value
@@ -289,7 +289,7 @@ public class TransactionBuilder {
 
     /// Asynchronously sets the collateral inputs.
     /// - Parameter utxos: An array of `UTXO` available as collateral.
-    public func setCollateralAsync(utxos: [UTXO]) async throws {
+    public func setCollateral(utxos: [UTXO]) async throws {
         return try await Task.detached(priority: .userInitiated) {
             try self.setCollateral(utxos: utxos)
         }.value

@@ -96,7 +96,7 @@ public class Keychain {
     /// - Parameter path: The full derivation path as a string.
     /// - Returns: A new `Keychain` instance initialized with the derived private key.
     /// - Throws: CardanoError if derivation fails.
-    public func deriveAsync(path: String) async throws -> Keychain {
+    public func derive(path: String) async throws -> Keychain {
         return try await Task.detached(priority: .userInitiated) {
             try self.derive(path: path)
         }.value
@@ -107,7 +107,7 @@ public class Keychain {
     /// - Parameter paths: An array of derivation path strings.
     /// - Returns: An array of `Keychain` objects in the same order as input paths.
     /// - Throws: CardanoError if derivation fails.
-    public func deriveMultipleAsync(paths: [String]) async throws -> [Keychain] {
+    public func derive(paths: [String]) async throws -> [Keychain] {
         let keychains = try await withThrowingTaskGroup(of: (Int, Keychain).self, returning: [Keychain].self) { group in
             for (idx, path) in paths.enumerated() {
                 group.addTask {
@@ -129,7 +129,7 @@ public class Keychain {
     /// Asynchronously gets the BIP32 public key.
     /// - Returns: A `Bip32PublicKey` wrapper.
     /// - Throws: CardanoError if key extraction fails.
-    public func publicKeyAsync() async throws -> Bip32PublicKey {
+    public func publicKey() async throws -> Bip32PublicKey {
         return try await Task.detached(priority: .userInitiated) {
             try self.publicKey()
         }.value
@@ -138,7 +138,7 @@ public class Keychain {
     /// Asynchronously gets the raw Ed25519 private key.
     /// - Returns: A `PrivateKey` wrapper.
     /// - Throws: CardanoError if key extraction fails.
-    public func privateKeyAsync() async throws -> PrivateKey {
+    public func privateKey() async throws -> PrivateKey {
         return try await Task.detached(priority: .userInitiated) {
             try self.privateKey()
         }.value

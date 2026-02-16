@@ -43,7 +43,7 @@ public struct Mnemonic {
     /// Asynchronously validates multiple mnemonic phrases in parallel.
     /// - Parameter phrases: Array of mnemonic phrase strings to validate.
     /// - Returns: Array of validation results (true = valid, false = invalid) maintaining input order.
-    public static func validateMultipleAsync(phrases: [String]) async throws -> [Bool] {
+    public static func validate(phrases: [String]) async throws -> [Bool] {
         return await withTaskGroup(
             of: (Int, Bool).self,
             returning: [Bool].self

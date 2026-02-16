@@ -173,7 +173,7 @@ public class Transaction {
     /// Asynchronously serializes multiple transactions to hex format in parallel
     /// - Parameter transactions: Array of Transaction objects to serialize
     /// - Returns: Array of hex-encoded transaction strings
-    public static func serializeBatchAsync(transactions: [Transaction]) async throws -> [String] {
+    public static func toHex(transactions: [Transaction]) async throws -> [String] {
         return try await withThrowingTaskGroup(
             of: (Int, String).self,
             returning: [String].self
@@ -196,7 +196,7 @@ public class Transaction {
     /// Asynchronously parses multiple transactions from hex format in parallel
     /// - Parameter hexStrings: Array of hex-encoded transaction strings
     /// - Returns: Array of parsed Transaction objects
-    public static func parseMultipleAsync(hexStrings: [String]) async throws -> [Transaction] {
+    public static func fromHex(hexStrings: [String]) async throws -> [Transaction] {
         return try await withThrowingTaskGroup(
             of: (Int, Transaction).self,
             returning: [Transaction].self
@@ -254,5 +254,17 @@ extension Wallet {
         csl_bridge_rptr_free(&p4)
         
         return try Transaction(body: transactionBody, witnessSet: TransactionWitnessSet(pointer: witnessSet), auxiliaryData: nil)
+    }
+
+    /// Asynchronously signs a transaction body using the provided keychain.
+    /// - Parameters:
+    ///   - transactionBody: The `TransactionBody` to sign.
+    ///   - keychain: The derived keychain (usually at index m/1852'/1815'/0'/0/X) to sign with.
+    /// - Returns: A complete `Transaction` object ready for submission.
+    /// - Throws: CardanoError if signing fails.
+    public func sign(transactionBody: TransactionBody, keychain: Keychain) async throws -> Transaction {
+        return try await Task.detached(priority: .userInitiated) {
+            try self.sign(transactionBody: transactionBody, keychain: keychain)
+        }.value
     }
 }

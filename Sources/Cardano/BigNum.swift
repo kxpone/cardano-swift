@@ -122,7 +122,7 @@ public class BigNum {
     /// Asynchronously sums multiple BigNum values in parallel for better performance
     /// - Parameter numbers: Array of BigNum values to sum
     /// - Returns: The sum of all numbers
-    public static func sumAsync(numbers: [BigNum]) async throws -> BigNum {
+    public static func sum(numbers: [BigNum]) async throws -> BigNum {
         guard !numbers.isEmpty else {
             return try BigNum.zero()
         }
@@ -163,18 +163,11 @@ public class BigNum {
         }
     }
     
-    /// Asynchronously adds batch to a value
-    /// - Parameter numbers: Array of BigNum values to add
-    /// - Returns: The sum of all numbers (same as sumAsync)
-    public static func addBatchAsync(numbers: [BigNum]) async throws -> BigNum {
-        return try await sumAsync(numbers: numbers)
-    }
-    
     /// Asynchronously compares multiple BigNum values to a reference value
     /// - Parameter values: Array of BigNum values to compare
     /// - Parameter to: Reference value to compare against
     /// - Returns: Array of comparison results (-1, 0, 1)
-    public static func compareBatchAsync(values: [BigNum], to reference: BigNum) async throws -> [Int64] {
+    public static func compare(values: [BigNum], to reference: BigNum) async throws -> [Int64] {
         return try await withThrowingTaskGroup(
             of: (Int, Int64).self,
             returning: [Int64].self

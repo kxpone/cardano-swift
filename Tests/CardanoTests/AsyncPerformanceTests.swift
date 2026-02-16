@@ -47,7 +47,7 @@ final class AsyncPerformanceTests: XCTestCase {
         let iterations = 100
         
         let startTime = Date()
-        let addresses = try await wallet.getAddressesAsync(
+        let addresses = try await wallet.getAddress(
             account: 0,
             startIndex: 0,
             count: iterations
@@ -74,7 +74,7 @@ final class AsyncPerformanceTests: XCTestCase {
         var addresses = [Address]()
         
         for i in 0..<iterations {
-            let address = try await wallet.getAddressAsync(account: 0, index: UInt32(i))
+            let address = try await wallet.getAddress(account: 0, index: UInt32(i))
             addresses.append(address)
         }
         
@@ -101,7 +101,7 @@ final class AsyncPerformanceTests: XCTestCase {
         let startTime = Date()
         
         // Run address derivation with controlled concurrency
-        let addresses = try await wallet.getAddressesAsync(count: addressCount)
+        let addresses = try await wallet.getAddress(count: addressCount)
         
         let duration = Date().timeIntervalSince(startTime)
         
@@ -152,7 +152,7 @@ final class AsyncPerformanceTests: XCTestCase {
         }
         
         let startTime = Date()
-        let keychains = try await wallet.keychain.deriveMultipleAsync(paths: paths)
+        let keychains = try await wallet.keychain.derive(paths: paths)
         let duration = Date().timeIntervalSince(startTime)
         let timePerDerivation = (duration * 1000) / Double(paths.count)
         
@@ -193,7 +193,7 @@ final class AsyncPerformanceTests: XCTestCase {
     func testAsyncNonBlockingSimulation() async throws {
         let startTime = Date()
         
-        let address = try await wallet.getAddressAsync(account: 0, index: 0)
+        let address = try await wallet.getAddress(account: 0, index: 0)
         // In real scenario, main thread continues processing
         
         let duration = Date().timeIntervalSince(startTime)
@@ -211,14 +211,14 @@ final class AsyncPerformanceTests: XCTestCase {
     // MARK: - Scale Tests
     
     /// Tests scaling behavior with large batches
-    func testAddressScalingAsync() async throws {
+    func testAddressScaling() async throws {
         let batchSizes = [10, 50, 100, 200]
         
         print("\n┌─ Address Derivation Scaling Test")
         
         for batchSize in batchSizes {
             let startTime = Date()
-            let addresses = try await wallet.getAddressesAsync(count: batchSize)
+            let addresses = try await wallet.getAddress(count: batchSize)
             let duration = Date().timeIntervalSince(startTime)
             
             let timePerAddress = (duration * 1000) / Double(batchSize)
@@ -236,7 +236,7 @@ final class AsyncPerformanceTests: XCTestCase {
         let iterations = 50
         
         for _ in 0..<iterations {
-            let addr = try await wallet.getAddressAsync()
+            let addr = try await wallet.getAddress()
             // Objects should be deallocated when exiting scope
             XCTAssertNotNil(addr)
         }
@@ -291,15 +291,15 @@ final class AsyncPerformanceTests: XCTestCase {
         // Create credentials for testing
         var credentials = [Credential]()
         for i in 0..<count {
-            let derivedKeychain = try wallet.keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
-            let publicKey = try derivedKeychain.publicKey().toRawKey()
+            let derivedKeychain = try await wallet.keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
+            let publicKey = try await derivedKeychain.publicKey().toRawKey()
             let keyHash = try publicKey.hash()
             let credential = try keyHash.toCredential()
             credentials.append(credential)
         }
         
         let startTime = Date()
-        let addresses = try await Address.createEnterpriseAddressesAsync(
+        let addresses = try await Address.enterprise(
             networkId: networkId,
             credentials: credentials
         )
@@ -380,7 +380,7 @@ final class AsyncPerformanceTests: XCTestCase {
         let count = 500
         var utxos = [UTXO]()
         
-        let address = try wallet.getAddress(account: 0, index: 0)
+        let address = try await wallet.getAddress(account: 0, index: 0)
         let value = Value(coin: 5000000)
         
         for i in 0..<count {
@@ -390,7 +390,7 @@ final class AsyncPerformanceTests: XCTestCase {
         }
         
         let startTime = Date()
-        let results = try await UTXO.toUnspentOutputsAsync(from: utxos)
+        let results = try await UTXO.toTransactionUnspentOutput(from: utxos)
         let duration = Date().timeIntervalSince(startTime)
         
         // Cleanup
@@ -471,13 +471,13 @@ final class AsyncPerformanceTests: XCTestCase {
         var publicKeys = [PublicKey]()
         
         for i in 0..<count {
-            let derivedKeychain = try wallet.keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
-            let publicKey = try derivedKeychain.publicKey().toRawKey()
+            let derivedKeychain = try await wallet.keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
+            let publicKey = try await derivedKeychain.publicKey().toRawKey()
             publicKeys.append(publicKey)
         }
         
         let startTime = Date()
-        let hashes = try await PublicKey.hashBatchAsync(keys: publicKeys)
+        let hashes = try await PublicKey.hash(keys: publicKeys)
         let duration = Date().timeIntervalSince(startTime)
         
         let timePerKey = (duration * 1000) / Double(count)
@@ -549,7 +549,7 @@ final class AsyncPerformanceTests: XCTestCase {
         }
         
         let startTime = Date()
-        let _ = try await BigNum.sumAsync(numbers: numbers)
+        let _ = try await BigNum.sum(numbers: numbers)
         let duration = Date().timeIntervalSince(startTime)
         
         let timePerOp = (duration * 1000) / Double(count)
@@ -578,7 +578,7 @@ final class AsyncPerformanceTests: XCTestCase {
     }
     
     /// Benchmarks BigNum batch comparison
-    func testBigNumCompareBatchAsync() async throws {
+    func testBigNumCompareBatch() async throws {
         let count = 50
         var numbers = [BigNum]()
         
@@ -590,7 +590,7 @@ final class AsyncPerformanceTests: XCTestCase {
         let reference = try BigNum(string: "250")
         
         let startTime = Date()
-        let comparisons = try await BigNum.compareBatchAsync(values: numbers, to: reference)
+        let comparisons = try await BigNum.compare(values: numbers, to: reference)
         let duration = Date().timeIntervalSince(startTime)
         
         let timePerOp = (duration * 1000) / Double(count)
@@ -646,7 +646,7 @@ final class AsyncPerformanceTests: XCTestCase {
         }
         
         let startTime = Date()
-        let results = try await Mnemonic.validateMultipleAsync(phrases: phrases)
+        let results = try await Mnemonic.validate(phrases: phrases)
         let duration = Date().timeIntervalSince(startTime)
         
         let timePerOp = (duration * 1000) / Double(count)
@@ -666,7 +666,7 @@ final class AsyncPerformanceTests: XCTestCase {
     // MARK: - Priority 3: PlutusData Batch Parsing
     
     /// Benchmarks PlutusData parsing from bytes
-    func testPlutusDataParseBytesAsync() async throws {
+    func testPlutusDataParseBytes() async throws {
         let count = 10
         var items: [(label: String, bytes: Data)] = []
         
@@ -684,7 +684,7 @@ final class AsyncPerformanceTests: XCTestCase {
         }
         
         let startTime = Date()
-        let parsedData = try await PlutusData.fromBytesAsync(items: items)
+        let parsedData = try await PlutusData.fromBytes(items: items)
         let duration = Date().timeIntervalSince(startTime)
         
         let timePerOp = items.isEmpty ? 0 : (duration * 1000) / Double(items.count)
@@ -702,7 +702,7 @@ final class AsyncPerformanceTests: XCTestCase {
     }
     
     /// Benchmarks PlutusData parsing from JSON
-    func testPlutusDataParseJSONAsync() async throws {
+    func testPlutusDataParseJSON() async throws {
         let count = 5
         var items: [(label: String, json: String)] = []
         
@@ -712,7 +712,7 @@ final class AsyncPerformanceTests: XCTestCase {
         }
         
         let startTime = Date()
-        let parsedData = try await PlutusData.fromJSONAsync(items: items)
+        let parsedData = try await PlutusData.fromJSON(items: items)
         let duration = Date().timeIntervalSince(startTime)
         
         let timePerOp = (duration * 1000) / Double(items.count)
@@ -731,14 +731,75 @@ final class AsyncPerformanceTests: XCTestCase {
     
     // MARK: - Priority 3: Transaction Batch Operations
     
-    /// Verifies Transaction batch serialization async method exists
-    func testTransactionSerializeBatchAsyncCompiles() async throws {
-        print("✅ Transaction.serializeBatchAsync() is implemented")
+    /// Benchmarks asynchronous transaction batch serialization
+    func testTransactionToHexPerformance() async throws {
+        let count = 20
+        let address = try await wallet.getAddress(account: 0, index: 0)
+        let utxo = UTXO(
+            txHash: "fd656fb1f4cf6fbbc36f2705568a4d3b7a970ec0b39f80cc81e1293626b77316",
+            index: 0,
+            value: Value(coin: 20_000_000),
+            address: address
+        )
+        
+        let builder = try TransactionBuilder()
+        try await builder.addInputs(from: [utxo])
+        try builder.addOutput(address: address, value: Value(coin: 10_000_000))
+        let body = try await builder.build(changeAddress: address)
+        let keychain = try Keychain(mnemonic: Mnemonic(phrase: testMnemonic))
+        let transaction = try await wallet.sign(transactionBody: body, keychain: keychain)
+        
+        let transactions = Array(repeating: transaction, count: count)
+        
+        let startTime = Date()
+        let results = try await Transaction.toHex(transactions: transactions)
+        let duration = Date().timeIntervalSince(startTime)
+        
+        print("""
+        ┌─ Asynchronous Transaction Batch Serialization
+        ├─ Total transactions: \(count)
+        ├─ Total time: \(String(format: "%.4f", duration))s
+        ├─ Time per tx: \(String(format: "%.3f", (duration * 1000) / Double(count)))ms
+        └─ Results count: \(results.count)
+        """)
+        
+        XCTAssertEqual(results.count, count)
     }
     
-    /// Verifies Transaction batch parsing async method exists
-    func testTransactionParseMultipleAsyncCompiles() async throws {
-        print("✅ Transaction.parseMultipleAsync() is implemented")
+    /// Benchmarks asynchronous transaction batch parsing
+    func testTransactionFromHexPerformance() async throws {
+        let count: Int = 20
+        let address: Address = try await wallet.getAddress(account: 0, index: 0)
+        let utxo: UTXO = UTXO(
+            txHash: "fd656fb1f4cf6fbbc36f2705568a4d3b7a970ec0b39f80cc81e1293626b77316",
+            index: 0,
+            value: Value(coin: 20_000_000),
+            address: address
+        )
+        
+        let builder: TransactionBuilder = try TransactionBuilder()
+        try await builder.addInputs(from: [utxo])
+        try builder.addOutput(address: address, value: Value(coin: 10_000_000))
+        let body: TransactionBody = try await builder.build(changeAddress: address)
+        let keychain: Keychain = try Keychain(mnemonic: Mnemonic(phrase: testMnemonic))
+        let transaction: Transaction = try await wallet.sign(transactionBody: body, keychain: keychain)
+        let hex: String = try transaction.toHex()
+        
+        let hexStrings: [String] = Array(repeating: hex, count: count)
+        
+        let startTime: Date = Date()
+        let results: [Transaction] = try await Transaction.fromHex(hexStrings: hexStrings)
+        let duration: TimeInterval = Date().timeIntervalSince(startTime)
+        
+        print("""
+        ┌─ Asynchronous Transaction Batch Parsing
+        ├─ Total transactions: \(count)
+        ├─ Total time: \(String(format: "%.4f", duration))s
+        ├─ Time per tx: \(String(format: "%.3f", (duration * 1000) / Double(count)))ms
+        └─ Results count: \(results.count)
+        """)
+        
+        XCTAssertEqual(results.count, count)
     }
 }
 
