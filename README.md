@@ -28,7 +28,7 @@ Add the following to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/kxpone/cardano-swift.git", from: "0.2.3")
+    .package(url: "https://github.com/kxpone/cardano-swift.git", from: "0.2.4")
 ]
 ```
 
@@ -292,7 +292,7 @@ swift package generate-documentation --target Cardano
 
 ## 🏁 Roadmap
 
-### 🏁 Done (v0.2.3)
+### 🏁 Done (v0.2.4)
 - [x] **Universal Apple Support**: Native support for **tvOS** and **watchOS** platforms.
 - [x] **Pinned Core Stability**: Native bridge core pinned to **v9.0.1** (CSL 15.0.3).
 - [x] **Async/Await API**: Complete Swift Concurrency support (7.5x speedup for batch operations).

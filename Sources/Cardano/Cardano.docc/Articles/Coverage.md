@@ -1,6 +1,6 @@
 # Code Coverage Report - Cardano Swift SDK
 
-This document details the code coverage status of the Cardano Swift SDK as of version 0.2.3.
+This document details the code coverage status of the Cardano Swift SDK as of version 0.2.4.
 
 ## Coverage Statistics
 

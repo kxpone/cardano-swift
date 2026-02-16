@@ -2,7 +2,7 @@ Pod::Spec.new do |s|
 
   s.swift_versions                      = '5.3'
   s.name                                = 'Cardano'
-  s.version                             = '0.2.3'
+  s.version                             = '0.2.4'
   s.summary                             = 'Cardano Swift SDK'
   s.homepage                            = 'https://github.com/kxpone/cardano-swift'
   s.license                             = 'MIT'
