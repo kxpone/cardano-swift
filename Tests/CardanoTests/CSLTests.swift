@@ -3,6 +3,9 @@ import XCTest
 import CCardano
 
 final class CSLTests: XCTestCase {
+    /// Verifies that low-level errors from the Rust bridge are correctly converted to CardanoError.
+    /// This ensures that library users receive actionable error messages for common 
+    /// failures like invalid Bech32 strings or malformed transaction binary data.
     func testCSLError() {
         XCTAssertThrowsError(try Address(bech32: "invalid_bech32")) { error in
             XCTAssertTrue(error is CardanoError)
@@ -14,6 +17,9 @@ final class CSLTests: XCTestCase {
         }
     }
     
+    /// Tests descriptive strings and equality for internal SDK errors.
+    /// Correct error reporting is vital for debugging complex on-chain interactions 
+    /// and providing clear feedback to end-users when a transaction fails.
     func testCardanoErrorDescription() {
         XCTAssertEqual(CardanoError.invalidPath.errorDescription, "Invalid derivation path")
         XCTAssertEqual(CardanoError.derivationFailed.errorDescription, "Key derivation failed")

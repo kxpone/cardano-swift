@@ -12,6 +12,16 @@ import CCardano
 
 /// Represents an Unspent Transaction Output (UTXO) on the Cardano blockchain.
 /// A UTXO is defined by its source transaction hash, output index, the amount it holds, and the owning address.
+///
+/// ### Example
+/// ```swift
+/// let utxo = UTXO(
+///     txHash: "fd656fb1...",
+///     index: 0,
+///     value: Value(coin: 20_000_000),
+///     address: myAddress
+/// )
+/// ```
 public struct UTXO {
     /// The hexadecimal string of the transaction that created this output.
     public let txHash: String

@@ -11,6 +11,12 @@ import Foundation
 import CCardano
 
 /// A wrapper for the Cardano serialization library's BigNum type (unsigned 64-bit integer).
+///
+/// ### Example
+/// ```swift
+/// let tenAda = try BigNum(string: "10000000")
+/// let sum = try tenAda.checkedAdd(BigNum(string: "5000000"))
+/// ```
 public class BigNum {
     internal let pointer: RPtr
     

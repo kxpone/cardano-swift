@@ -1,4 +1,4 @@
-# Cardano Swift SDK - Concurrency & Performance Analysis
+# Concurrency & Performance Analysis - Cardano Swift SDK
 
 ## Overview
 
@@ -119,7 +119,7 @@ let addresses = try await Address.enterprise(
 
 ---
 
-### UTXO Batch Conversion
+### <doc:UTXO> Batch Conversion
 
 **Real Benchmark Results:**
 ```
@@ -141,7 +141,7 @@ let unspentOutputs = try await UTXO.toTransactionUnspentOutput(from: utxos)
 **Real-World Impact:**
 - **Scenario:** Loading dApp state with 500 UTXOs
   - Sync approach: User sees 5ms UI freeze
-  -  approach: Instant response, processing happens in background
+  - Async approach: Instant response, processing happens in background
 
 ---
 
@@ -182,7 +182,7 @@ async let keychains = wallet.keychain.derive(paths: paths)
 let (addrs, keys) = try await (addresses, keychains)
 ```
 
-### Pattern 3: Controlled Concurrency
+### Pattern 4: Controlled Concurrency
 
 **Best For:** Preventing resource exhaustion with massive batches
 **Expected Speedup:** Stable across scale
@@ -210,26 +210,6 @@ With maxConcurrency=8 (10,000 items):
 └─ Time: ~1250ms (slower but safer)
 ```
 
-### Pattern 4: Retry with Backoff
-
-**Best For:** Unreliable operations, network calls
-**Expected Speedup:** On success (no retry)
-
-```swift
-let address = try await AsyncHelpers.retryWithBackoff(
-    maxAttempts: 3,
-    initialDelay: 100  // ms
-) {
-    try await wallet.getAddress()
-}
-```
-
-**Time Behavior:**
-- Success on 1st try: ~2ms (same as sync)
-- Success on 2nd try: ~2ms + 100ms delay = 102ms
-- Success on 3rd try: ~2ms + 100ms + 200ms delay = 302ms
-- All retries fail: ~302ms + error
-
 ---
 
 ## Memory Implications
@@ -250,16 +230,6 @@ Memory pattern: Spike at start, then steady
 GC pressure: Moderate (all objects deallocated after batch)
 ```
 
-### Asynchronous with Concurrency Control
-```
-Memory per operation: ~100KB
-Peak memory (maxConcurrency=8): ~800KB (8 tasks max)
-Memory pattern: Bounded by concurrency limit
-GC pressure: Low-moderate (bounded by max concurrent tasks)
-```
-
-**Recommendation:** For 100+ items, use `maxConcurrency=4-8` to control memory usage.
-
 ---
 
 ## CPU Impact
@@ -278,36 +248,24 @@ Animation Frame Rate: 60 FPS needs < 16.6ms
 Duration: Main thread remains at 0ms
 User Impact: No UI blocking
 Animation Frame Rate: 60 FPS always maintained
-  └─  1000 addresses: 0ms main thread impact
 ```
 
 ---
 
 ## Specialized Batch Operations (P3)
 
-### BigNum Operations
-- `BigNum.sum(numbers: [BigNum])`: Parallel summation of large value arrays.
-- `BigNum.compare(values: [BigNum], to: BigNum)`: Parallel comparison of arrays.
-
-### Plutus Data
-- `PlutusData.fromBytes(items: [(label: String, bytes: Data)])`: Parallel parsing of multiple datums.
-- `PlutusData.fromJSON(items: [(label: String, json: String)])`: Parallel JSON-to-Plutus conversion.
-
-### Transactions
-- `Transaction.toHex(transactions: [Transaction])`: Parallel serialization to hex.
-- `Transaction.fromHex(hexStrings: [String])`: Parallel parsing from hex strings.
-
-### Mnemonics & Keys
-- `Mnemonic.validate(phrases: [String])`: Parallel validation of multiple recovery phrases.
-- `PublicKey.hash(keys: [PublicKey])`: Parallel hashing of multiple public keys.
+- **<doc:BigNum> Operations**: Parallel summation and comparison.
+- **<doc:PlutusData>**: Parallel parsing from bytes/JSON.
+- **Transactions**: Parallel hex serialization and parsing.
+- **Mnemonics & Keys**: Parallel validation and hashing.
 
 ---
 
 ## CPU & Memory Optimization
 
-- **CPU-Bound Tasks:** All async methods are optimized for multi-core execution using `withThrowingTaskGroup`.
-- **Order Preservation:** All batch methods (e.g., `derive(paths:)`, `getAddress(count:)`) guaranteed to return results in the **exact same order** as inputs.
-- **Main Thread Safety:** Long-running cryptographic operations are offloaded from the main thread, ensuring 60 FPS UI performance even during heavy wallet operations.
+- **CPU-Bound Tasks**: All async methods are optimized for multi-core execution using `withThrowingTaskGroup`.
+- **Order Preservation**: All batch methods guaranteed to return results in the **exact same order** as inputs.
+- **Main Thread Safety**: Long-running cryptographic operations are offloaded from the main thread, ensuring 60 FPS UI performance even during heavy wallet operations.
 
 ## Performance Tuning Checklist
 
@@ -316,11 +274,9 @@ Animation Frame Rate: 60 FPS always maintained
 - [x] Use `async let` for independent parallel logic blocks.
 - [x] Observe the **50-item threshold**: Sync is often faster for < 20 items due to task overhead.
 
----
-
 ## Conclusion
 
-The Cardano Swift SDK is designed for high-performance mobile and server applications. By unifying sync and async APIs and providing high-throughput batch operations, it enables building responsive dApps that can process complex Cardano transactions with minimal latency.
+The Cardano Swift SDK enables building responsive dApps that can process complex Cardano transactions with minimal latency using unified sync and async APIs.
 
 ---
 
@@ -341,4 +297,15 @@ The Cardano Swift SDK is designed for high-performance mobile and server applica
 | `Transaction.toHex` | ✅ | Yes | 1.5x |
 | `Transaction.fromHex` | ✅ | Yes | 1.5x |
 
-**Final SDK Status:** All 12 unified async batch methods are fully implemented, verified with 79 tests, and production-ready.
+## Related Symbols
+
+- <doc:AsyncHelpers>
+- <doc:Wallet>
+- <doc:Address>
+- <doc:Keychain>
+- <doc:UTXO>
+- <doc:BigNum>
+- <doc:PlutusData>
+- <doc:Transaction>
+- <doc:PublicKey>
+- <doc:Mnemonic>

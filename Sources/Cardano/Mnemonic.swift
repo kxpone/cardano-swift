@@ -12,6 +12,15 @@ import Bip39
 
 /// Represents a BIP39 mnemonic recovery phrase.
 /// This structure provides utilities for generating new mnemonics and converting them to binary entropy.
+///
+/// ### Example
+/// ```swift
+/// let mnemonic = try Mnemonic(strength: .bits160) // 15 words
+/// print(mnemonic.phrase)
+///
+/// // Restore from phrase
+/// let restored = Mnemonic(phrase: "art forum devote...")
+/// ```
 public struct Mnemonic {
     /// The actual mnemonic phrase as a space-separated string.
     public let phrase: String

@@ -11,6 +11,13 @@ import Foundation
 
 /// Helper utilities for async/await operations in the Cardano API.
 /// Provides convenient wrappers and patterns for parallel processing.
+///
+/// ### Example
+/// ```swift
+/// let results = try await AsyncHelpers.processInParallel(items: myItems) { item in
+///     try await process(item)
+/// }
+/// ```
 public class AsyncHelpers {
     
     /// Executes a closure on a background thread with high priority.

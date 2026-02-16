@@ -65,7 +65,11 @@ extension WalletTests {
         XCTAssertEqual(addresses.count, iterations)
     }
     
-    /// Benchmarks single address derivation with async wrapper
+    /// Benchmarks single address derivation with async wrapper.
+    /// This test evaluates the overhead of calling the asynchronous API for individual
+    /// address generation. In a real-world Cardano app, using the batch API is preferred
+    /// when many addresses are needed (e.g., during wallet sync), but single async calls
+    /// are ideal for ad-hoc payment address generation.
     func testAddressSingleAsyncPerformance() async throws {
         let iterations = 100
         
@@ -93,7 +97,10 @@ extension WalletTests {
     
     // MARK: - Concurrent Batch Operations
     
-    /// Tests parallel address derivation
+    /// Tests parallel address derivation using Swift Structured Concurrency.
+    /// Cardano wallets often need to scan multiple accounts or indices. This test 
+    /// demonstrates how the library leverages `TaskGroup` to distribute cryptographic 
+    /// derivation across available CPU cores, maximizing performance for large wallets.
     func testParallelAddressDerivation() async throws {
         let addressCount = 50
         
@@ -116,7 +123,10 @@ extension WalletTests {
     
     // MARK: - Keychain Derivation Benchmarks
     
-    /// Tests synchronous multiple keychain derivation
+    /// Tests synchronous multiple keychain derivation.
+    /// Deriving child keychains (using BIP-32/CIP-1852) is a CPU-intensive process.
+    /// This benchmark quantifies the time needed to derive private keys for different
+    /// accounts or roles (staking vs payment) sequentially.
     func testKeychainDerivationSyncPerformance() throws {
         let paths = (0..<50).map { i in
             "m/1852'/1815'/\(i)'/0/0"
@@ -144,7 +154,10 @@ extension WalletTests {
         XCTAssertEqual(keychains.count, paths.count)
     }
     
-    /// Tests asynchronous multiple keychain derivation
+    /// Tests asynchronous multiple keychain derivation.
+    /// By utilizing batch derivation, the library can parallelize the underlying
+    /// Ed25519-BIP32 operations. This is essential for enterprise-grade applications
+    /// that manage thousands of keys or complex HD structures.
     func testKeychainDerivationAsyncPerformance() async throws {
         let paths = (0..<50).map { i in
             "m/1852'/1815'/\(i)'/0/0"
@@ -168,8 +181,10 @@ extension WalletTests {
     
     // MARK: - UI Responsiveness Tests
     
-    /// Simulates UI-blocking operations with synchronous API
-    /// Shows how main thread would be blocked
+    /// Simulates UI-blocking operations with synchronous API.
+    /// This test highlights the risk of calling cryptographic functions on the main thread.
+    /// In a mobile app, even a 50ms block can cause dropped frames; longer operations
+    /// will lead to an unresponsive user interface or system termination.
     func testSyncUIBlockingSimulation() throws {
         let startTime = Date()
         
@@ -188,7 +203,10 @@ extension WalletTests {
         """)
     }
     
-    /// Demonstrates async non-blocking behavior
+    /// Demonstrates async non-blocking behavior.
+    /// By using the `async` versions of the API, the heavy workload is shifted to a 
+    /// background thread pool. This allows the main thread to stay free for UI 
+    /// updates and animations while the blockchain data is being processed.
     func testAsyncNonBlockingSimulation() async throws {
         let startTime = Date()
         

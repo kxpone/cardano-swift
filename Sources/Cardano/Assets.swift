@@ -11,6 +11,12 @@ import Foundation
 import CCardano
 
 /// Represents a collection of assets (native tokens) within a single policy of the Cardano blockchain.
+///
+/// ### Example
+/// ```swift
+/// let assets = try Assets()
+/// try assets.add(assetName: "KXP", amount: 1000)
+/// ```
 public class Assets {
     /// Opaque pointer to the underlying Rust assets object.
     internal let pointer: RPtr
@@ -47,6 +53,14 @@ public class Assets {
 }
 
 /// Represents multiple asset collections, grouped by their respective policy IDs.
+///
+/// ### Example
+/// ```swift
+/// let multiAsset = try MultiAsset()
+/// let assets = try Assets()
+/// try assets.add(assetName: "KXP", amount: 1000)
+/// try multiAsset.insert(policyId: "6b8d3c96...", assets: assets)
+/// ```
 public class MultiAsset {
     /// Opaque pointer to the underlying Rust MultiAsset object.
     internal let pointer: RPtr

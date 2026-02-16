@@ -1,7 +1,7 @@
 # Cardano Swift (Universal)
 
 [![Swift CI](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml/badge.svg)](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml)
-[![Coverage](https://img.shields.io/badge/Coverage-93.31%25-brightgreen.svg)](docs/COVERAGE.md)
+[![Coverage](https://img.shields.io/badge/Coverage-93.31%25-brightgreen.svg)](Sources/Cardano/Cardano.docc/Articles/Coverage.md)
 [![Swift Version](https://img.shields.io/badge/Swift-5.3+-orange.svg)](https://swift.org)
 [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20tvOS%20%7C%20watchOS%20%7C%20Linux-blue.svg)](https://github.com/kxpone/cardano-swift)
 [![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
@@ -68,7 +68,40 @@ The SDK features an **Auto-Bootstrap** system:
 
 ### 🍎 Apple Platform Support (tvOS & watchOS)
 
-While **iOS** and **macOS** are supported on the stable Rust toolchain, **tvOS** and **watchOS** targets are currently Tier 2/3 and require the **nightly** toolchain.
+While **iOS** and **macOS** are supported on the stable Rust toolchain, **tvOS** and **watchOS** targets are currently Tier 2/3 and require the **nightly** toolchain. 
+
+## 📚 Documentation
+
+Detailed documentation for `cardano-swift` is bundled directly with the package and integrated into Xcode.
+
+### Documentation Structure
+
+The documentation is organized into three main areas:
+
+| Section | Description | Path |
+| :--- | :--- | :--- |
+| **API Reference** | Full documentation of all public classes, structs, and methods with code examples. | [Sources/Cardano/](Sources/Cardano/) |
+| **Technical Guides** | Depth articles on Cardano-specific concepts (Plutus, HD Wallets, Concurrency). | [Articles](Sources/Cardano/Cardano.docc/Articles/) |
+| **Educational Tests** | Every unit test includes "Cardano Usage Context" explaining the *why* behind the test. | [Tests/CardanoTests/](Tests/CardanoTests/) |
+
+### Key Articles
+
+- **[Plutus Smart Contracts](Sources/Cardano/Cardano.docc/Articles/Plutus.md)**: A guide to datums, redeemers, and Plutus V3 (**CIP-112/CIP-085**) integration.
+- **[High-Performance Concurrency](Sources/Cardano/Cardano.docc/Articles/Concurrency.md)**: How to leverage the 7.5x performance boost via Swift Async/Await.
+- **[Test Coverage Analysis](Sources/Cardano/Cardano.docc/Articles/Coverage.md)**: Detailed breakdown of the **93.31%** test coverage state.
+
+### Generating Documentation
+
+To preview the full documentation in your browser or Xcode:
+
+**Using Xcode:**
+1. Open the project in Xcode.
+2. Select **Product > Build Documentation**.
+
+**Using Swift CLI:**
+```bash
+swift package generate-documentation --target Cardano
+```
 
 To enable support for these platforms, ensure you have the nightly toolchain and relevant targets installed:
 
@@ -214,21 +247,22 @@ The build system will automatically bundle these into the framework during the i
 
 ## 📚 Documentation
 
-### Guides & Resources
 
-| Document | Description |
-|----------|-------------|
-| **[Plutus Scripts Guide](./docs/PLUTUS_SCRIPTS.md)** | Complete Plutus V1/V2/V3 smart contract guide with cost analysis & examples |
-| **[Concurrency & Performance](./docs/CONCURRENCY.md)** | High-performance async/await patterns, benchmarks, and 7.5x speedup analysis |
-| **[Code Coverage](./docs/COVERAGE.md)** | Detailed code coverage report and technical analysis |
-| **[CHANGELOG](./docs/CHANGELOG.md)** | Version history and feature releases |
+
+### API Reference (DocC)
+
+This project uses **Apple DocC** for unified documentation. You can browse the full API reference directly in Xcode (Product > Build Documentation) or generate it locally:
+
+```bash
+swift package generate-documentation --target Cardano
+```
 
 ### Quick Links
 
 - **[Cardano Docs](https://docs.cardano.org/)** - Official Cardano documentation
 - **[Plutus Docs](https://plutus.readthedocs.io/)** - Plutus smart contract reference
 - **[CIP-31 (V2)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0031)** - Plutus V2 specification
-- **[CIP-87 (V3)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0087)** - Plutus V3 specification
+- **[CIP-112 (V3)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0112)** - Plutus V3 specification
 
 ---
 
@@ -262,6 +296,7 @@ The build system will automatically bundle these into the framework during the i
 - [x] **Universal Apple Support**: Native support for **tvOS** and **watchOS** platforms.
 - [x] **Pinned Core Stability**: Native bridge core pinned to **v9.0.1** (CSL 15.0.3).
 - [x] **Async/Await API**: Complete Swift Concurrency support (7.5x speedup for batch operations).
+- [x] **Unified Documentation**: Full API reference via DocC with detailed code examples.
 - [x] **Complete Documentation**: 200+ documented methods with parameters, returns, and errors.
 - [x] **Universal Linux/macOS/iOS support** via unified Rust bridge.
 - [x] **Auto-Bootstrap system** for SPM and CocoaPods.
@@ -279,7 +314,6 @@ The build system will automatically bundle these into the framework during the i
 - [ ] **Governance (CIP-1694)**: Support for DRep registration, voting, and delegation (Conway era).
 - [ ] **Native Scripts**: Multi-signature support (ALL, ANY, N-of-M) and time-locks.
 - [ ] **Pluggable Providers**: Protocol-based interface for easy integration with Blockfrost, Koios, or Ogmios.
-- [ ] **Unified Documentation**: Full API reference via DocC with detailed code examples.
 - [ ] **Collateral & Change**: Automated collateral selection for smart contract interactions.
 
 ## 📜 License

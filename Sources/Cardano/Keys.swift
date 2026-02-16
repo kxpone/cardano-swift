@@ -11,6 +11,12 @@ import Foundation
 import CCardano
 
 /// Managed wrapper for a BIP32 public key.
+///
+/// ### Example
+/// ```swift
+/// let bip32Public = try keychain.publicKey()
+/// let rawPublic = try bip32Public.toRawKey()
+/// ```
 public class Bip32PublicKey {
     internal let pointer: RPtr
     
@@ -42,6 +48,12 @@ public class Bip32PublicKey {
 }
 
 /// Managed wrapper for a BIP32 private key.
+///
+/// ### Example
+/// ```swift
+/// let bip32Private = try keychain.derive(path: "m/1852'...").toBip32PrivateKey()
+/// let publicKey = try bip32Private.toPublic()
+/// ```
 public class Bip32PrivateKey {
     internal let pointer: RPtr
     
@@ -94,6 +106,12 @@ public class Bip32PrivateKey {
 }
 
 /// Managed wrapper for a raw Ed25519 public key.
+///
+/// ### Example
+/// ```swift
+/// let publicKey = try bip32PublicKey.toRawKey()
+/// print(try publicKey.toBech32())
+/// ```
 public class PublicKey {
     internal let pointer: RPtr
     

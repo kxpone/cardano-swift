@@ -11,6 +11,12 @@ import Foundation
 import CCardano
 
 /// Represents the general transaction metadata.
+///
+/// ### Example
+/// ```swift
+/// let metadata = try Metadata()
+/// try metadata.insert(label: 674, value: Metadata.fromJSON(json: "{\"msg\": [\"Hello\"]}"))
+/// ```
 public class Metadata {
     internal let pointer: RPtr
     

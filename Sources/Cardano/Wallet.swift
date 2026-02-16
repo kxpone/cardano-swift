@@ -12,6 +12,13 @@ import CCardano
 
 /// High-level interface for managing a Cardano wallet.
 /// Provides functionality for address derivation and data signing using a mnemonic.
+///
+/// ### Example
+/// ```swift
+/// let mnemonic = Mnemonic(phrase: "art forum devote street sure rather head...")
+/// let wallet = try Wallet(mnemonic: mnemonic, networkId: 0)
+/// let address = try wallet.getAddress(account: 0, index: 0)
+/// ```
 public class Wallet {
     /// Internal BIP32 keychain used for key derivation.
     internal let keychain: Keychain

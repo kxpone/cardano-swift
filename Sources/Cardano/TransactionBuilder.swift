@@ -34,6 +34,14 @@ csl_bridge_rptr_free(&p)
 
 /// A high-level helper for constructing Cardano transactions.
 /// Handles fee calculation, input selection, outputs, and automatic change addressing.
+///
+/// ### Example
+/// ```swift
+/// let builder = try TransactionBuilder()
+/// try builder.addInputs(from: [utxo])
+/// try builder.addOutput(address: destination, value: Value(coin: 1_000_000))
+/// let body = try builder.build(changeAddress: myAddress)
+/// ```
 public class TransactionBuilder {
     /// Opaque pointer to the internal Rust TransactionBuilder object.
     internal let builder: RPtr

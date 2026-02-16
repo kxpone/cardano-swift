@@ -12,6 +12,13 @@ import CCardano
 
 /// Managed container for BIP32 hierarchical deterministic keys.
 /// It provides functionality for deriving child keys and converting between private/public key formats.
+///
+/// ### Example
+/// ```swift
+/// let keychain = try Keychain(mnemonic: mnemonic)
+/// let child = try keychain.derive(path: "m/1852'/1815'/0'/0/0")
+/// let privateKey = try child.privateKey()
+/// ```
 public class Keychain {
     /// Opaque pointer to the internal BIP32 private root key.
     private let rootKey: RPtr

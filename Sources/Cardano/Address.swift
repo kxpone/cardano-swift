@@ -12,6 +12,12 @@ import CCardano
 
 /// Represents a Cardano address (Shelley or Byron).
 /// This structure wraps a native Rust address object and provides methods to convert it to various formats.
+///
+/// ### Example
+/// ```swift
+/// let address = try Address(bech32: "addr1...")
+/// print(try address.toHex())
+/// ```
 public class Address {
     /// Opaque pointer to the underlying Rust address object.
     internal let pointer: RPtr

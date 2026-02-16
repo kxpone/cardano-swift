@@ -27,6 +27,12 @@ public enum PlutusDataKind: Int32 {
 }
 
 /// A Plutus smart contract script.
+///
+/// ### Example
+/// ```swift
+/// let script = try PlutusScript(bytes: scriptBytes, version: .v3)
+/// let hash = try script.hash()
+/// ```
 public class PlutusScript {
     internal let pointer: RPtr
     public let version: PlutusScriptVersion
@@ -173,6 +179,12 @@ csl_bridge_rptr_free(&p)
 }
 
 /// Represents data used in Plutus scripts (Datums, Redeemers).
+///
+/// ### Example
+/// ```swift
+/// let data = try PlutusData.newInteger(number: 42)
+/// let bytes = try data.toBytes()
+/// ```
 public class PlutusData {
     internal let pointer: RPtr
 
@@ -520,6 +532,12 @@ csl_bridge_rptr_free(&p)
 }
 
 /// A collection of values for a PlutusMap key.
+///
+/// ### Example
+/// ```swift
+/// let values = try PlutusMapValues()
+/// try values.add(data: someData)
+/// ```
 public class PlutusMapValues {
     internal let pointer: RPtr
     
@@ -694,6 +712,11 @@ csl_bridge_rptr_free(&p)
 }
 
 /// A redeemer for a Plutus script.
+///
+/// ### Example
+/// ```swift
+/// let redeemer = try Redeemer(tag: .spend, index: 0, data: myData, exUnits: myExUnits)
+/// ```
 public class Redeemer {
     internal let pointer: RPtr
     private let data: PlutusData?

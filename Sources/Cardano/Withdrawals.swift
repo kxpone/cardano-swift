@@ -11,6 +11,13 @@ import Foundation
 import CCardano
 
 /// Managed collection of reward withdrawals for a transaction.
+///
+/// ### Example
+/// ```swift
+/// let withdrawals = try Withdrawals()
+/// try withdrawals.insert(rewardAddress: myRewardAddr, amount: rewardAmount)
+/// try builder.setWithdrawals(withdrawals: withdrawals)
+/// ```
 public class Withdrawals {
     internal let pointer: RPtr
     

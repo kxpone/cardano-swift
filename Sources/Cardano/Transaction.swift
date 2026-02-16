@@ -11,6 +11,12 @@ import Foundation
 import CCardano
 
 /// Represents the body of a Cardano transaction.
+///
+/// ### Example
+/// ```swift
+/// let body = try builder.build(changeAddress: myAddress)
+/// let fee = try body.fee()
+/// ```
 public class TransactionBody {
     internal let pointer: RPtr
     
@@ -140,6 +146,12 @@ public class TransactionWitnessSet {
 }
 
 /// Represents a complete Cardano transaction, including the body and witness set (signatures).
+///
+/// ### Example
+/// ```swift
+/// let tx = try Transaction(body: body, witnessSet: witnesses)
+/// let hex = try tx.toHex()
+/// ```
 public class Transaction {
     /// Opaque pointer to the underlying Rust transaction object.
     private let pointer: RPtr

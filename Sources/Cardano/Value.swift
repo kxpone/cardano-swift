@@ -11,6 +11,12 @@ import Foundation
 import CCardano
 
 /// Represents the total asset balance of a transaction output, including ADA (coin) and optional native tokens.
+///
+/// ### Example
+/// ```swift
+/// let adaValue = Value(coin: 2_000_000)
+/// let assetValue = Value(coin: 1_500_000, multiAsset: myAssets)
+/// ```
 public struct Value {
     /// The amount of ADA in Lovelace (1 ADA = 1,000,000 Lovelace).
     public let coin: UInt64

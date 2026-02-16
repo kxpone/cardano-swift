@@ -118,7 +118,20 @@ final class PlutusTests: XCTestCase {
         XCTAssertNotNil(witness)
     }
 
-    // MARK: - Plutus V2 Tests
+    /// Tests Plutus support starting from the Alonzo-era (V1).
+    /// Plutus V1 introduced on-chain smart contracts. This test verifies script hashing
+    /// and basic language version reporting.
+    func testPlutusScriptV1Creation() throws {
+        let scriptData = Data(hex: PlutusTests.scriptHex)
+        let v1 = try PlutusScript(bytes: scriptData, version: .v1)
+        
+        XCTAssertEqual(v1.version, .v1)
+        XCTAssertEqual(try v1.languageVersion().kind(), 0) // V1
+        XCTAssertNotNil(try v1.hash())
+    }
+    
+    /// Tests Plutus V2 support introduced in the Vasil-era.
+    /// V2 scripts are more efficient and support reference inputs and inline datums.
     func testPlutusScriptV2Creation() throws {
         let scriptData = Data(hex: PlutusTests.scriptHex)
         let v2 = try PlutusScript(bytes: scriptData, version: .v2)
@@ -128,6 +141,9 @@ final class PlutusTests: XCTestCase {
         XCTAssertNotNil(try v2.hash())
     }
     
+    /// Benchmarks PlutusData operations in a V2 context.
+    /// Efficient manipulation of script data is essential for backend services
+    /// processing high volumes of transaction events.
     func testPlutusDataV2Operations() throws {
         measure {
             do {
@@ -147,6 +163,9 @@ final class PlutusTests: XCTestCase {
         }
     }
     
+    /// Verifies all available Redeemer tags for V2.
+    /// Different tags identify the purpose of a redeemer (e.g., spending, minting, voting).
+    /// Supporting all tags ensures compatibility with the latest protocol features, including governance.
     func testRedeemerV2AllTags() throws {
         let tagsToTest: [(tag: Redeemer.Tag, name: String)] = [
             (.spend, "spend"),
@@ -166,6 +185,9 @@ final class PlutusTests: XCTestCase {
         }
     }
     
+    /// Tests Mint Witnesses for Plutus V2 scripts.
+    /// Mint witnesses authorize the creation (or burning) of native assets. Using
+    /// V2 scripts allows for more complex minting policies with lower resource costs.
     func testMintWitnessV2() throws {
         let scriptData = Data(hex: PlutusTests.scriptHex)
         let script = try PlutusScript(bytes: scriptData, version: .v2)
@@ -179,6 +201,9 @@ final class PlutusTests: XCTestCase {
     }
 
     // MARK: - Plutus V3 Tests
+
+    /// Tests Plutus V3 support introduced in the Chang-era (Conway Protocol).
+    /// V3 introduces new primitives for governance and advanced cryptography (BLS curves).
     func testPlutusScriptV3Creation() throws {
         let scriptData = Data(hex: PlutusTests.scriptHex)
         let v3 = try PlutusScript(bytes: scriptData, version: .v3)
@@ -188,6 +213,9 @@ final class PlutusTests: XCTestCase {
         XCTAssertNotNil(try v3.hash())
     }
     
+    /// Verifies PlutusData operations compatible with V3 scripts.
+    /// V3 scripts often handle complex state related to governance and voting. This
+    /// test ensures the library can serialize inputs for these advanced use cases.
     func testPlutusDataV3Operations() throws {
         measure {
             do {
@@ -413,14 +441,14 @@ final class PlutusTests: XCTestCase {
         XCTAssertNotNil(costModels)
     }
     
-    /// Plutus V3: Optimized cost model (era: Conway, CIP-087)
+    /// Plutus V3: Optimized cost model (era: Conway, CIP-112)
     /// - Improved PlutusData encoding (CBOR optimization)
     /// - Better validation rules
     /// - Cost reduction: 10-40% cheaper than V2 on average
     /// - More efficient memory usage
     func testPlutusV3OptimizedCosts() throws {
         // V3 costs are LOWER than V2 by 10-40% due to:
-        // - CIP-087: Optimized PlutusData serialization
+        // - CIP-085: Optimized PlutusData serialization
         // - Faster CBOR encoding/decoding
         // - Reduced validation overhead
         // - Better memory layout

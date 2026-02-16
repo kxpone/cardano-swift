@@ -2,6 +2,11 @@ import XCTest
 import Cardano
 
 extension MetadataTests {
+    /// Comprehensive test for Transaction Metadata and Auxiliary Data.
+    /// In Cardano, metadata allows attaching semi-structured data to transactions using
+    /// specific labels (e.g., label 674 for CIP-20 messages). This test verifies the 
+    /// creation of complex metadata structures (text, maps, integers) and their
+    /// successful embedding into a signed transaction for off-chain indexing.
     func testMetadataExtra() throws {
         let metadata = try Metadata()
         let label = try BigNum(string: "100")

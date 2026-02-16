@@ -2,6 +2,10 @@ import XCTest
 import Cardano
 
 final class KeysTests: XCTestCase {
+    /// Tests BIP32 key derivation and serialization.
+    /// BIP32 hierarchical deterministic keys are the foundation of Cardano wallets. 
+    /// This test ensures that private keys derived from entropy can produce valid child keys 
+    /// and that public keys can be correctly serialized/deserialized for sharing or address computation.
     func testBip32Keys() throws {
         let entropy = Data(repeating: 0, count: 32)
         let rootKey = try Bip32PrivateKey.fromEntropy(entropy: entropy)
@@ -20,10 +24,11 @@ final class KeysTests: XCTestCase {
         XCTAssertEqual(try pubFromBytes.asBytes(), pubBytes)
     }
 
+    /// Verifies standard Ed25519 key operations.
+    /// Non-extended keys are used for individual signatures (e.g., transaction witnesses). 
+    /// Transitioning between private and public keys and validating their byte representations 
+    /// is required for transaction signing and witness verification.
     func testSimpleKeys() throws {
-        let bytes = Data(repeating: 1, count: 32)
-        // PrivateKey from normal bytes (32 bytes)
-        // Wait, from_extended_bytes might expect 64 bytes. Let's use 64 bytes for test.
         let bytes64 = Data(repeating: 1, count: 64)
         let priv = try PrivateKey.fromBytes(bytes: bytes64)
         XCTAssertNotNil(priv)

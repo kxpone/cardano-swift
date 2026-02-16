@@ -2,6 +2,10 @@ import XCTest
 @testable import Cardano
 
 final class WithdrawalsTests: XCTestCase {
+    /// Verifies the management of the reward withdrawal collection.
+    /// In Cardano, staking rewards are withdrawn by adding a "withdrawals" field 
+    /// to a transaction. This test ensures that ADA amounts can be mapped to 
+    /// specific reward (stake) addresses correctly for inclusion in the transaction body.
     func testWithdrawalsCollection() throws {
         let withdrawals = try Withdrawals()
         XCTAssertEqual(try withdrawals.count(), 0)

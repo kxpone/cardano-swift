@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2026-02-16
+
+### 📚 Documentation (Unified & Educational)
+- **DocC Catalog Integration**: Launched the first official DocC catalog for `cardano-swift`. SDK documentation is now fully integrated with Xcode, including a landing page, structural articles, and a unified API reference.
+- **Contextual Test Documentation**: Systematically annotated the entire test suite with "Cardano Usage Context." Tests now serve as a secondary learning resource, explaining the *why* and *how* of Cardano-specific requirements (e.g., ADA precision, HD derivation, and eUTXO Balancing).
+- **Comprehensive API Examples**: Injected `### Example` blocks into the documentation of all major public components (`Address`, `Wallet`, `TransactionBuilder`, `PlutusScript`, etc.), providing immediate code snippets for common tasks.
+- **Technical Sync & Corrections**:
+    - **Plutus V3 Compliance**: Updated and corrected all Plutus V3 references to align with **CIP-112** (ScriptContext observation) and **CIP-085** (Sums-of-Products).
+    - **Standardized References**: Verified all technical documentation against official Cardano Improvement Proposals (CIPs).
+
+### 🔧 Changed
+- Relocated technical research (Plutus guide, Concurrency analysis, Coverage reports) into the DocC catalog for a unified developer experience.
+- Improved documentation for `BigNum`, `Keychain`, and `AsyncHelpers` to clarify memory management and thread-safety when bridging to Rust.
+
+### 🔧 Fixed
+- Resolved broken links in documentation by strictly adhering to official CIP repository paths.
+
 ## [0.2.3] - 2026-02-16
 
 ### 🚀 Added
