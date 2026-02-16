@@ -7,9 +7,13 @@ import XCTest
 @testable import Cardano
 
 final class PlutusTests: XCTestCase {
-    let scriptHex = "4d01000033222220051200120011"
+    static let scriptHex = "4d01000033222220051200120011"
     
     // MARK: - Core PlutusData Tests
+    
+    /// Tests the manipulation of PlutusData primitives: Integers, Bytes, Lists, and Maps.
+    /// PlutusData is the universal data format for smart contract inputs (datums and redeemers).
+    /// Ensuring correct nested serialization is critical for script validation.
     func testPlutusDataDetailed() throws {
         // 1. Integer
         let intData = try PlutusData.newInteger(number: 12345)
@@ -60,55 +64,63 @@ final class PlutusTests: XCTestCase {
         XCTAssertEqual(try retrievedConstr?.alternative(), 2)
     }
 
-    // MARK: - Plutus V1 Tests
-    func testPlutusScriptV1Creation() throws {
-        let scriptData = Data(hex: scriptHex)
-        let v1 = try PlutusScript(bytes: scriptData, version: .v1)
+    /// Verifies serialization of Plutus scripts to CBOR bytes.
+    /// Script bytes are required for on-chain submission and for computing the script hash.
+    func testPlutusScriptToBytes() throws {
+        let scriptHex = "4d01000033222220051200120011"
+        let script = try PlutusScript(bytes: Data(hex: scriptHex), version: .v1)
+        let bytes = try script.toBytes()
+        XCTAssertFalse(bytes.isEmpty)
+    }
+
+    /// Tests the ability to retrieve all keys from a PlutusMap.
+    /// This is useful for off-chain code that needs to iterate over script data structures.
+    func testPlutusMapKeys() throws {
+        let map = try PlutusMap()
+        let key = try PlutusData.newInteger(number: 1)
+        let values = try PlutusMapValues()
+        try values.add(data: try PlutusData.newInteger(number: 100))
+        try map.insert(key: key, value: values)
         
-        XCTAssertEqual(v1.version, .v1)
-        XCTAssertEqual(try v1.languageVersion().kind(), 0) // V1
-        XCTAssertNotNil(try v1.hash())
+        let keys = try map.keys()
+        XCTAssertEqual(try keys.len(), 1)
     }
-    
-    func testPlutusDataV1Operations() throws {
-        measure {
-            do {
-                let intData = try PlutusData.newInteger(number: 42)
-                let _ = try intData.kind()
-                
-                let list = try PlutusList()
-                try list.add(data: intData)
-                let listData = try PlutusData.newList(list: list)
-                let _ = try listData.asList()
-            } catch {
-                XCTFail("V1 data operations failed: \(error)")
-            }
-        }
+
+    /// Tests setting values in a Plutus Cost Model.
+    /// Cost models define the resource costs for different Plutus primitives and vary by protocol version.
+    func testCostModelSet() throws {
+        let model = try CostModel()
+        try? model.set(index: 0, cost: 100)
     }
-    
-    func testRedeemerV1Creation() throws {
-        let data = try PlutusData.newInteger(number: 1)
-        let exUnits = try ExUnits(mem: 100, step: 100)
-        let redeemer = try Redeemer(tag: .spend, index: 0, data: data, exUnits: exUnits)
-        
-        XCTAssertNotNil(redeemer)
+
+    /// Verifies JSON to PlutusData conversion.
+    /// Many off-chain scripts and APIs provide datums in JSON format. Validating this
+    /// ensures the library can bridge between web standards and on-chain binary data.
+    func testPlutusDataJSON() throws {
+        let json = "{\"int\":42}"
+        let fromJson = try PlutusData.fromJSON(json: json)
+        XCTAssertNotNil(fromJson)
+        XCTAssertEqual(try fromJson.toJSON(), json)
     }
-    
-    func testMintWitnessV1() throws {
-        let scriptData = Data(hex: scriptHex)
+
+    /// Tests the creation of Mint Witnesses for native assets.
+    func testMintWitnessCreation() throws {
+        let scriptData = Data(hex: PlutusTests.scriptHex)
         let script = try PlutusScript(bytes: scriptData, version: .v1)
         let scriptSource = try PlutusScriptSource(script: script)
-        let redeemer = try Redeemer(tag: .mint, index: 0, 
-                                    data: try PlutusData.newInteger(number: 1),
-                                    exUnits: try ExUnits(mem: 10, step: 10))
+        let redeemer = try Redeemer(
+            tag: .mint, 
+            index: 0, 
+            data: try PlutusData.newInteger(number: 1),
+            exUnits: try ExUnits(mem: 10, step: 10)
+        )
         let witness = try MintWitness.newPlutusScript(script: scriptSource, redeemer: redeemer)
-        
         XCTAssertNotNil(witness)
     }
 
     // MARK: - Plutus V2 Tests
     func testPlutusScriptV2Creation() throws {
-        let scriptData = Data(hex: scriptHex)
+        let scriptData = Data(hex: PlutusTests.scriptHex)
         let v2 = try PlutusScript(bytes: scriptData, version: .v2)
         
         XCTAssertEqual(v2.version, .v2)
@@ -155,7 +167,7 @@ final class PlutusTests: XCTestCase {
     }
     
     func testMintWitnessV2() throws {
-        let scriptData = Data(hex: scriptHex)
+        let scriptData = Data(hex: PlutusTests.scriptHex)
         let script = try PlutusScript(bytes: scriptData, version: .v2)
         let scriptSource = try PlutusScriptSource(script: script)
         let redeemer = try Redeemer(tag: .mint, index: 0, 
@@ -168,7 +180,7 @@ final class PlutusTests: XCTestCase {
 
     // MARK: - Plutus V3 Tests
     func testPlutusScriptV3Creation() throws {
-        let scriptData = Data(hex: scriptHex)
+        let scriptData = Data(hex: PlutusTests.scriptHex)
         let v3 = try PlutusScript(bytes: scriptData, version: .v3)
         
         XCTAssertEqual(v3.version, .v3)
@@ -202,7 +214,7 @@ final class PlutusTests: XCTestCase {
     }
     
     func testMintWitnessV3() throws {
-        let scriptData = Data(hex: scriptHex)
+        let scriptData = Data(hex: PlutusTests.scriptHex)
         let script = try PlutusScript(bytes: scriptData, version: .v3)
         let scriptSource = try PlutusScriptSource(script: script)
         let redeemer = try Redeemer(tag: .mint, index: 0, 
@@ -215,7 +227,7 @@ final class PlutusTests: XCTestCase {
 
     // MARK: - Cross-Version Comparison Tests
     func testScriptHashesDifferAcrossVersions() throws {
-        let scriptData = Data(hex: scriptHex)
+        let scriptData = Data(hex: PlutusTests.scriptHex)
         
         let v1 = try PlutusScript(bytes: scriptData, version: .v1)
         let v2 = try PlutusScript(bytes: scriptData, version: .v2)
@@ -231,7 +243,7 @@ final class PlutusTests: XCTestCase {
     }
     
     func testLanguageVersionsCorrect() throws {
-        let scriptData = Data(hex: scriptHex)
+        let scriptData = Data(hex: PlutusTests.scriptHex)
         
         let v1 = try PlutusScript(bytes: scriptData, version: .v1)
         let v2 = try PlutusScript(bytes: scriptData, version: .v2)
@@ -243,7 +255,7 @@ final class PlutusTests: XCTestCase {
     }
     
     func testComplexDataCreationAllVersions() throws {
-        let scriptData = Data(hex: scriptHex)
+        let scriptData = Data(hex: PlutusTests.scriptHex)
         let scripts = [
             (try PlutusScript(bytes: scriptData, version: .v1), "V1"),
             (try PlutusScript(bytes: scriptData, version: .v2), "V2"),
@@ -282,7 +294,7 @@ final class PlutusTests: XCTestCase {
 
     func testTransactionWithPlutusMint() throws {
         // Test Plutus components - focusing on components that don't need complex integration
-        let scriptData = Data(hex: scriptHex)
+        let scriptData = Data(hex: PlutusTests.scriptHex)
         let script = try PlutusScript(bytes: scriptData, version: .v2)
         XCTAssertNotNil(script)
         

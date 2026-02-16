@@ -47,17 +47,14 @@ public class TransactionBuilder {
     ///   - keyDeposit: Amount required for stake key registration.
     ///   - exUnitPrices: (Optional) Prices for Plutus execution units.
     public init(linearFeeA: UInt64 = 44, linearFeeB: UInt64 = 155381, poolDeposit: UInt64 = 500000000, keyDeposit: UInt64 = 2000000, exUnitPrices: ExUnitPrices? = nil) throws {
-        print("TransactionBuilder.init: starting")
         let bigA = try CSL.callRPtr { csl_bridge_big_num_from_str(String(linearFeeA), $0, $1) }
         let bigB = try CSL.callRPtr { csl_bridge_big_num_from_str(String(linearFeeB), $0, $1) }
         let linearFee = try CSL.callRPtr {
             csl_bridge_linear_fee_new(bigA, bigB, $0, $1)
         }
-        print("TransactionBuilder.init: linearFee created")
         
         let config = try CSL.callRPtr { csl_bridge_transaction_builder_config_builder_new($0, $1) }
         let configWithFee = try CSL.callRPtr { csl_bridge_transaction_builder_config_builder_fee_algo(config, linearFee, $0, $1) }
-        print("TransactionBuilder.init: configWithFee created")
         
         var currentConfig = configWithFee
         var exUnitsConfig: RPtr? = nil
@@ -169,14 +166,11 @@ public class TransactionBuilder {
     ///   - witness: The `PlutusWitness` containing script, datum, and redeemer.
     ///   - utxo: The `UTXO` to spend.
     public func addPlutusScriptInput(witness: PlutusWitness, utxo: UTXO) throws {
-        print("TransactionBuilder.addPlutusScriptInput: starting")
         let txHashPtr = try CSL.callRPtr { csl_bridge_transaction_hash_from_hex(utxo.txHash, $0, $1) }
         let inputPtr = try CSL.callRPtr { csl_bridge_transaction_input_new(txHashPtr, Int64(utxo.index), $0, $1) }
         let valPtr = try utxo.value.toPointer()
-        print("TransactionBuilder.addPlutusScriptInput: pointers prepared")
         
         try CSL.voidCall { csl_bridge_transaction_builder_add_plutus_script_input(builder, witness.pointer, inputPtr, valPtr, $0) }
-        print("TransactionBuilder.addPlutusScriptInput: added")
         
         var p1 = txHashPtr
         var p2 = inputPtr
@@ -184,7 +178,6 @@ public class TransactionBuilder {
         csl_bridge_rptr_free(&p1)
         csl_bridge_rptr_free(&p2)
         csl_bridge_rptr_free(&p3)
-        print("TransactionBuilder.addPlutusScriptInput: finished")
     }
     
     /// Sets the collateral inputs for the transaction (required for Plutus scripts).

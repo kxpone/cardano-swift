@@ -25,6 +25,11 @@ public class Assets {
         var p = pointer
         csl_bridge_rptr_free(&p)
     }
+
+    /// Returns the number of assets in the collection.
+    public func len() throws -> Int {
+        Int(try CSL.call { csl_bridge_assets_len(pointer, $0, $1) })
+    }
     
     /// Adds a token to the collection.
     /// - Parameters:
@@ -38,14 +43,6 @@ public class Assets {
         }
         let amountPtr = try CSL.callRPtr { csl_bridge_big_num_from_str(String(amount), $0, $1) }
         _ = try CSL.callRPtr { csl_bridge_assets_insert(pointer, namePtr, amountPtr, $0, $1) }
-    }
-    
-    /// Returns the number of distinct assets in the collection.
-    /// - Returns: The count of assets.
-    /// - Throws: CardanoError if length lookup fails.
-    public func len() throws -> UInt64 {
-        let length: Int64 = try CSL.call { csl_bridge_assets_len(pointer, $0, $1) }
-        return UInt64(length)
     }
 }
 
@@ -63,6 +60,11 @@ public class MultiAsset {
     deinit {
         var p = pointer
         csl_bridge_rptr_free(&p)
+    }
+
+    /// Returns the number of policies in the multi-asset collection.
+    public func len() throws -> Int {
+        Int(try CSL.call { csl_bridge_multi_asset_len(pointer, $0, $1) })
     }
     
     /// Inserts a set of assets for a given policy ID.

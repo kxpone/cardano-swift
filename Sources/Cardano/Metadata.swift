@@ -88,6 +88,13 @@ public class AuxiliaryData {
         try CSL.voidCall { csl_bridge_auxiliary_data_set_metadata(pointer, metadata.pointer, $0) }
     }
     
+    /// Returns the metadata attached to this container, if any.
+    public func metadata() throws -> Metadata? {
+        let ptr = try CSL.callRPtr { csl_bridge_auxiliary_data_metadata(pointer, $0, $1) }
+        guard ptr._0 != nil else { return nil }
+        return Metadata(pointer: ptr)
+    }
+
     /// Converts the auxiliary data to a hexadecimal string (CBOR).
     /// - Returns: The hex-encoded auxiliary data.
     /// - Throws: CardanoError if conversion fails.

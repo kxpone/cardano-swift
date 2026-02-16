@@ -218,6 +218,13 @@ public class PlutusData {
         return try CSL.getData { csl_bridge_plutus_data_to_bytes(pointer, $0, $1) }
     }
     
+    /// Converts the PlutusData to a JSON string.
+    /// - Returns: A JSON string representation.
+    /// - Throws: CardanoError if conversion fails.
+    public func toJSON() throws -> String {
+        return try CSL.getString { csl_bridge_plutus_data_to_json(pointer, 1, $0, $1) } // 1 for DetailedComplexJson
+    }
+    
     /// Determines the type/kind of this PlutusData.
     /// - Returns: The PlutusDataKind (integer, bytes, list, map, etc).
     /// - Throws: CardanoError if kind lookup fails.
@@ -689,8 +696,8 @@ csl_bridge_rptr_free(&p)
 /// A redeemer for a Plutus script.
 public class Redeemer {
     internal let pointer: RPtr
-    private let data: PlutusData
-    private let exUnits: ExUnits
+    private let data: PlutusData?
+    private let exUnits: ExUnits?
 
     /// Redeemer tag indicating what type of operation the redeemer applies to.
     public enum Tag: UInt32 {
@@ -724,6 +731,12 @@ public class Redeemer {
         }
         let indexBN = try CSL.callRPtr { csl_bridge_big_num_from_str(String(index), $0, $1) }
         self.pointer = try CSL.callRPtr { csl_bridge_redeemer_new(tagPtr, indexBN, data.pointer, exUnits.pointer, $0, $1) }
+    }
+
+    internal init(pointer: RPtr) {
+        self.pointer = pointer
+        self.data = nil
+        self.exUnits = nil
     }
 
 deinit {
@@ -802,6 +815,22 @@ public class Redeemers {
         try CSL.voidCall { csl_bridge_redeemers_add(pointer, redeemer.pointer, $0) }
     }
 
+    /// Returns the number of Redeemers in the collection.
+    /// - Returns: The count of redeemers.
+    /// - Throws: CardanoError if retrieval fails.
+    public func len() throws -> Int {
+        Int(try CSL.call { csl_bridge_redeemers_len(pointer, $0, $1) })
+    }
+
+    /// Retrieves a Redeemer at the given index.
+    /// - Parameter index: The index of the redeemer to retrieve.
+    /// - Returns: The Redeemer at the index.
+    /// - Throws: CardanoError if retrieval fails.
+    public func get(index: Int) throws -> Redeemer {
+        let ptr = try CSL.callRPtr { csl_bridge_redeemers_get(pointer, Int64(index), $0, $1) }
+        return Redeemer(pointer: ptr)
+    }
+
 deinit {
 var p = pointer
 csl_bridge_rptr_free(&p)
@@ -824,6 +853,22 @@ public class PlutusWitnesses {
     /// - Throws: CardanoError if addition fails.
     public func add(witness: PlutusWitness) throws {
         try CSL.voidCall { csl_bridge_plutus_witnesses_add(pointer, witness.pointer, $0) }
+    }
+
+    /// Returns the number of PlutusWitnesses in the collection.
+    /// - Returns: The count of witnesses.
+    /// - Throws: CardanoError if retrieval fails.
+    public func len() throws -> Int {
+        Int(try CSL.call { csl_bridge_plutus_witnesses_len(pointer, $0, $1) })
+    }
+
+    /// Retrieves a PlutusWitness at the given index.
+    /// - Parameter index: The index of the witness to retrieve.
+    /// - Returns: The PlutusWitness at the index.
+    /// - Throws: CardanoError if retrieval fails.
+    public func get(index: Int) throws -> PlutusWitness {
+        let ptr = try CSL.callRPtr { csl_bridge_plutus_witnesses_get(pointer, Int64(index), $0, $1) }
+        return PlutusWitness(pointer: ptr)
     }
 
 deinit {

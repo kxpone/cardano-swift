@@ -1,6 +1,7 @@
 # Cardano Swift (Universal)
 
 [![Swift CI](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml/badge.svg)](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml)
+[![Coverage](https://img.shields.io/badge/Coverage-93.31%25-brightgreen.svg)](docs/COVERAGE.md)
 [![Swift Version](https://img.shields.io/badge/Swift-5.3+-orange.svg)](https://swift.org)
 [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20tvOS%20%7C%20watchOS%20%7C%20Linux-blue.svg)](https://github.com/kxpone/cardano-swift)
 [![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
@@ -27,7 +28,7 @@ Add the following to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/kxpone/cardano-swift.git", from: "0.2.1")
+    .package(url: "https://github.com/kxpone/cardano-swift.git", from: "0.2.3")
 ]
 ```
 
@@ -219,6 +220,7 @@ The build system will automatically bundle these into the framework during the i
 |----------|-------------|
 | **[Plutus Scripts Guide](./docs/PLUTUS_SCRIPTS.md)** | Complete Plutus V1/V2/V3 smart contract guide with cost analysis & examples |
 | **[Concurrency & Performance](./docs/CONCURRENCY.md)** | High-performance async/await patterns, benchmarks, and 7.5x speedup analysis |
+| **[Code Coverage](./docs/COVERAGE.md)** | Detailed code coverage report and technical analysis |
 | **[CHANGELOG](./docs/CHANGELOG.md)** | Version history and feature releases |
 
 ### Quick Links
@@ -256,7 +258,7 @@ The build system will automatically bundle these into the framework during the i
 
 ## 🏁 Roadmap
 
-### 🏁 Done (v0.2.1)
+### 🏁 Done (v0.2.3)
 - [x] **Universal Apple Support**: Native support for **tvOS** and **watchOS** platforms.
 - [x] **Pinned Core Stability**: Native bridge core pinned to **v9.0.1** (CSL 15.0.3).
 - [x] **Async/Await API**: Complete Swift Concurrency support (7.5x speedup for batch operations).

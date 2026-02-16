@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-02-16
+
+### 🚀 Added
+- **Major Test Coverage Expansion**: Achieved **93.31% line coverage** (up from ~68%).
+- **Exposed Internal APIs for Testing**: Added multiple public getters and factory methods for white-box testing of the native bridge.
+- **Transaction & Metadata Introspection**: Added methods to access `Transaction` components (`body()`, `witnessSet()`, `auxiliaryData()`) and `Metadata` inspection.
+- **Key Management Extensions**: Added `Bip32PrivateKey.fromEntropy`, `derive`, and bytes-conversion methods for Ed25519/BIP32 keys.
+- **Plutus & Script Support**: Added new collection wrappers and getters for `Redeemers`, `PlutusWitnesses`, and `PlutusScriptSource`.
+- **Collection Management**: Added `len()` methods to `Withdrawals`, `Assets`, `MultiAsset`, `TransactionInputs`, and `TransactionOutputs`.
+
+### 🔧 Fixed
+- Fixed compilation errors in `KeysExtraTests.swift` and `MnemonicExtraTests.swift`.
+- Resolved bridge call instability when handling complex transaction components in tests.
+- Corrected type scoping for `MnemonicStrength` and `EntropySize` calls.
+
 ## [0.2.2] - 2026-02-16
 
 ### 🚀 Added

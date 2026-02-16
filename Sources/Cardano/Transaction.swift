@@ -17,6 +17,34 @@ public class TransactionBody {
     internal init(pointer: RPtr) {
         self.pointer = pointer
     }
+
+    /// Initializes a new TransactionBody with inputs, outputs, fee, and optional parameters.
+    public init(
+        inputs: TransactionInputs,
+        outputs: TransactionOutputs,
+        fee: BigNum,
+        ttl: UInt64? = nil
+    ) throws {
+        self.pointer = try CSL.callRPtr { csl_bridge_transaction_body_new(inputs.pointer, outputs.pointer, fee.pointer, $0, $1) }
+    }
+
+    /// Returns the inputs for this transaction body.
+    public func inputs() throws -> TransactionInputs {
+        let ptr = try CSL.callRPtr { csl_bridge_transaction_body_inputs(pointer, $0, $1) }
+        return TransactionInputs(pointer: ptr)
+    }
+
+    /// Returns the outputs for this transaction body.
+    public func outputs() throws -> TransactionOutputs {
+        let ptr = try CSL.callRPtr { csl_bridge_transaction_body_outputs(pointer, $0, $1) }
+        return TransactionOutputs(pointer: ptr)
+    }
+
+    /// Returns the fee for this transaction body.
+    public func fee() throws -> BigNum {
+        let ptr = try CSL.callRPtr { csl_bridge_transaction_body_fee(pointer, $0, $1) }
+        return BigNum(pointer: ptr)
+    }
     
     deinit {
         var p = pointer
@@ -43,6 +71,24 @@ public class TransactionInput {
         self.pointer = try CSL.callRPtr { csl_bridge_transaction_input_new(hashPtr, Int64(index), $0, $1) }
         var p = hashPtr
         csl_bridge_rptr_free(&p)
+    }
+
+    /// Returns the output index of this input.
+    /// - Returns: The output index.
+    /// - Throws: CardanoError if retrieval fails.
+    public func index() throws -> Int {
+        Int(try CSL.call { csl_bridge_transaction_input_index(pointer, $0, $1) })
+    }
+
+    /// Returns the transaction ID (hash) of this input.
+    /// - Returns: The transaction ID bytes.
+    /// - Throws: CardanoError if retrieval fails.
+    public func transactionId() throws -> Data {
+        let hashPtr = try CSL.callRPtr { csl_bridge_transaction_input_transaction_id(pointer, $0, $1) }
+        let data = try CSL.getData { csl_bridge_transaction_hash_to_bytes(hashPtr, $0, $1) }
+        var p = hashPtr
+        csl_bridge_rptr_free(&p)
+        return data
     }
     
     deinit {
@@ -133,8 +179,8 @@ public class Transaction {
     /// - Returns: The transaction hash as a hexadecimal string.
     /// - Throws: CardanoError if hashing fails.
     public func hash() throws -> String {
-        let body = try CSL.callRPtr { csl_bridge_transaction_body(pointer, $0, $1) }
-        let bodyData = try CSL.getData { csl_bridge_transaction_body_to_bytes(body, $0, $1) }
+        let bodyPtr = try CSL.callRPtr { csl_bridge_transaction_body(pointer, $0, $1) }
+        let bodyData = try CSL.getData { csl_bridge_transaction_body_to_bytes(bodyPtr, $0, $1) }
         let fixedBody = try CSL.callRPtr { (res: UnsafeMutablePointer<RPtr>, err: UnsafeMutablePointer<CharPtr?>) -> Bool in
             bodyData.withUnsafeBytes { ptr in
                 csl_bridge_fixed_transaction_body_from_bytes(ptr.bindMemory(to: UInt8.self).baseAddress!, uintptr_t(bodyData.count), res, err)
@@ -143,7 +189,7 @@ public class Transaction {
         let hash = try CSL.callRPtr { csl_bridge_fixed_transaction_body_tx_hash(fixedBody, $0, $1) }
         let hex = try CSL.getString { csl_bridge_transaction_hash_to_hex(hash, $0, $1) }
         
-        var p1 = body
+        var p1 = bodyPtr
         var p2 = fixedBody
         var p3 = hash
         csl_bridge_rptr_free(&p1)
@@ -151,6 +197,25 @@ public class Transaction {
         csl_bridge_rptr_free(&p3)
         
         return hex
+    }
+
+    /// Returns the body for this transaction.
+    public func body() throws -> TransactionBody {
+        let ptr = try CSL.callRPtr { csl_bridge_transaction_body(pointer, $0, $1) }
+        return TransactionBody(pointer: ptr)
+    }
+
+    /// Returns the witness set for this transaction.
+    public func witnessSet() throws -> TransactionWitnessSet {
+        let ptr = try CSL.callRPtr { csl_bridge_transaction_witness_set(pointer, $0, $1) }
+        return TransactionWitnessSet(pointer: ptr)
+    }
+
+    /// Returns the auxiliary data (metadata) for this transaction, if present.
+    public func auxiliaryData() throws -> AuxiliaryData? {
+        let ptr = try CSL.callRPtr { csl_bridge_transaction_auxiliary_data(pointer, $0, $1) }
+        guard ptr._0 != nil else { return nil }
+        return AuxiliaryData(pointer: ptr)
     }
     
     /// Returns the Hexadecimal (CBOR) representation of the full transaction.
@@ -266,5 +331,65 @@ extension Wallet {
         return try await Task.detached(priority: .userInitiated) {
             try self.sign(transactionBody: transactionBody, keychain: keychain)
         }.value
+    }
+}
+
+/// A collection of transaction inputs.
+public class TransactionInputs {
+    internal let pointer: RPtr
+    internal init(pointer: RPtr) {
+        self.pointer = pointer
+    }
+    public init() throws {
+        self.pointer = try CSL.callRPtr { csl_bridge_transaction_inputs_new($0, $1) }
+    }
+    public func add(input: TransactionInput) throws {
+        _ = try CSL.call { (res: UnsafeMutablePointer<Bool>, err: UnsafeMutablePointer<CharPtr?>) -> Bool in
+            csl_bridge_transaction_inputs_add(pointer, input.pointer, res, err)
+        }
+    }
+    public func len() throws -> Int {
+        Int(try CSL.call { csl_bridge_transaction_inputs_len(pointer, $0, $1) })
+    }
+    deinit {
+        var p = pointer
+        csl_bridge_rptr_free(&p)
+    }
+}
+
+/// Represents an output of a Cardano transaction.
+public class TransactionOutput {
+    internal let pointer: RPtr
+    internal init(pointer: RPtr) {
+        self.pointer = pointer
+    }
+    public init(address: Address, amount: Value) throws {
+        let valuePtr = try amount.toPointer()
+        self.pointer = try CSL.callRPtr { csl_bridge_transaction_output_new(address.pointer, valuePtr, $0, $1) }
+    }
+    deinit {
+        var p = pointer
+        csl_bridge_rptr_free(&p)
+    }
+}
+
+/// A collection of transaction outputs.
+public class TransactionOutputs {
+    internal let pointer: RPtr
+    internal init(pointer: RPtr) {
+        self.pointer = pointer
+    }
+    public init() throws {
+        self.pointer = try CSL.callRPtr { csl_bridge_transaction_outputs_new($0, $1) }
+    }
+    public func add(output: TransactionOutput) throws {
+        try CSL.voidCall { csl_bridge_transaction_outputs_add(pointer, output.pointer, $0) }
+    }
+    public func len() throws -> Int {
+        Int(try CSL.call { csl_bridge_transaction_outputs_len(pointer, $0, $1) })
+    }
+    deinit {
+        var p = pointer
+        csl_bridge_rptr_free(&p)
     }
 }

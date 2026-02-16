@@ -6,18 +6,24 @@
 import XCTest
 @testable import Cardano
 
-final class WalletRecoveryTests: XCTestCase {
-    func testCreateFromWordsAddressToBech32() throws {
-        let words = "art forum devote street sure rather head chuckle guard poverty release quote oak craft enemy"
+extension WalletTests {
+    /// Tests wallet recovery from a 15-word mnemonic phrase.
+    /// This ensures that the recovery process accurately restores the same state (addresses)
+    /// as the original wallet. Compatibility with other Cardano wallets (like Eternl or Lace)
+    /// depends on this exact derivation logic.
+    func testCreateFromWordsAddressToBech32Recovery() throws {
+        let words = WalletTests.testMnemonic
         let mnemonic = Mnemonic(phrase: words)
         let wallet = try Wallet(mnemonic: mnemonic, networkId: 0)
         
-        // Exact expected result
+        // Exact expected result for the primary address
         XCTAssertEqual(try wallet.getAddress(index: 0).toBech32(), "addr_test1qpu5vlrf4xkxv2qpwngf6cjhtw542ayty80v8dyr49rf5ewvxwdrt70qlcpeeagscasafhffqsxy36t90ldv06wqrk2qum8x5w")
     }
     
-    func testSigningSomeData() throws {
-        let words = "art forum devote street sure rather head chuckle guard poverty release quote oak craft enemy"
+    /// Verifies that a recovered wallet can produce valid signatures for its derived addresses.
+    /// This test mimics the "Sign Message" functionality often used for DApp authentication.
+    func testSigningSomeDataRecovery() throws {
+        let words = WalletTests.testMnemonic
         let mnemonic = Mnemonic(phrase: words)
         let wallet = try Wallet(mnemonic: mnemonic, networkId: 0)
         

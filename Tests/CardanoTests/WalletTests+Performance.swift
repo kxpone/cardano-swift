@@ -2,20 +2,18 @@ import XCTest
 import CCardano
 @testable import Cardano
 
-final class AsyncPerformanceTests: XCTestCase {
-    var wallet: Wallet!
-    let testMnemonic = "art forum devote street sure rather head chuckle guard poverty release quote oak craft enemy"
-    
-    override func setUp() async throws {
-        try await super.setUp()
-        let mnemonic = Mnemonic(phrase: testMnemonic)
-        self.wallet = try Wallet(mnemonic: mnemonic, networkId: 0)
+extension WalletTests {
+    private func getPerformanceWallet() throws -> Wallet { 
+        let mnemonic = Mnemonic(phrase: WalletTests.testMnemonic) 
+        return try Wallet(mnemonic: mnemonic, networkId: 0) 
     }
+    
     
     // MARK: - Address Derivation Benchmarks
     
-    /// Benchmarks synchronous address derivation
-    /// Used as baseline for comparison with async API
+    /// Benchmarks synchronous address derivation.
+    /// Used as a baseline to demonstrate the computational overhead of deriving cryptographic 
+    /// keys and formatting Bech32 addresses sequentially on the main thread.
     func testAddressSyncPerformance() throws {
         let iterations = 100
         
@@ -23,7 +21,7 @@ final class AsyncPerformanceTests: XCTestCase {
         var addresses = [Address]()
         
         for i in 0..<iterations {
-            let address = try wallet.getAddress(account: 0, index: UInt32(i))
+            let address = try (try getPerformanceWallet()).getAddress(account: 0, index: UInt32(i))
             addresses.append(address)
         }
         
@@ -41,13 +39,14 @@ final class AsyncPerformanceTests: XCTestCase {
         XCTAssertEqual(addresses.count, iterations)
     }
     
-    /// Benchmarks asynchronous batch address derivation
-    /// Demonstrates parallel processing capabilities
+    /// Benchmarks asynchronous batch address derivation.
+    /// Demonstrates the library's ability to offload derivation to background threads 
+    /// and utilize parallel computation, significantly reducing total execution time for many addresses.
     func testAddressAsyncPerformance() async throws {
         let iterations = 100
         
         let startTime = Date()
-        let addresses = try await wallet.getAddress(
+        let addresses = try await (try getPerformanceWallet()).getAddress(
             account: 0,
             startIndex: 0,
             count: iterations
@@ -74,7 +73,7 @@ final class AsyncPerformanceTests: XCTestCase {
         var addresses = [Address]()
         
         for i in 0..<iterations {
-            let address = try await wallet.getAddress(account: 0, index: UInt32(i))
+            let address = try await (try getPerformanceWallet()).getAddress(account: 0, index: UInt32(i))
             addresses.append(address)
         }
         
@@ -101,7 +100,7 @@ final class AsyncPerformanceTests: XCTestCase {
         let startTime = Date()
         
         // Run address derivation with controlled concurrency
-        let addresses = try await wallet.getAddress(count: addressCount)
+        let addresses = try await (try getPerformanceWallet()).getAddress(count: addressCount)
         
         let duration = Date().timeIntervalSince(startTime)
         
@@ -127,7 +126,7 @@ final class AsyncPerformanceTests: XCTestCase {
         var keychains = [Keychain]()
         
         for path in paths {
-            let keychain = try wallet.keychain.derive(path: path)
+            let keychain = try (try getPerformanceWallet()).keychain.derive(path: path)
             keychains.append(keychain)
         }
         
@@ -152,7 +151,7 @@ final class AsyncPerformanceTests: XCTestCase {
         }
         
         let startTime = Date()
-        let keychains = try await wallet.keychain.derive(paths: paths)
+        let keychains = try await (try getPerformanceWallet()).keychain.derive(paths: paths)
         let duration = Date().timeIntervalSince(startTime)
         let timePerDerivation = (duration * 1000) / Double(paths.count)
         
@@ -176,7 +175,7 @@ final class AsyncPerformanceTests: XCTestCase {
         
         // Simulate waiting for main thread
         let blockingStart = Date()
-        let _ = try wallet.getAddress(account: 0, index: 0)
+        let _ = try (try getPerformanceWallet()).getAddress(account: 0, index: 0)
         let blockingDuration = Date().timeIntervalSince(blockingStart)
         
         let duration = Date().timeIntervalSince(startTime)
@@ -193,7 +192,7 @@ final class AsyncPerformanceTests: XCTestCase {
     func testAsyncNonBlockingSimulation() async throws {
         let startTime = Date()
         
-        let address = try await wallet.getAddress(account: 0, index: 0)
+        let address = try await (try getPerformanceWallet()).getAddress(account: 0, index: 0)
         // In real scenario, main thread continues processing
         
         let duration = Date().timeIntervalSince(startTime)
@@ -218,7 +217,7 @@ final class AsyncPerformanceTests: XCTestCase {
         
         for batchSize in batchSizes {
             let startTime = Date()
-            let addresses = try await wallet.getAddress(count: batchSize)
+            let addresses = try await (try getPerformanceWallet()).getAddress(count: batchSize)
             let duration = Date().timeIntervalSince(startTime)
             
             let timePerAddress = (duration * 1000) / Double(batchSize)
@@ -236,7 +235,7 @@ final class AsyncPerformanceTests: XCTestCase {
         let iterations = 50
         
         for _ in 0..<iterations {
-            let addr = try await wallet.getAddress()
+            let addr = try await (try getPerformanceWallet()).getAddress()
             // Objects should be deallocated when exiting scope
             XCTAssertNotNil(addr)
         }
@@ -254,7 +253,7 @@ final class AsyncPerformanceTests: XCTestCase {
         // Create credentials for testing
         var credentials = [Credential]()
         for i in 0..<count {
-            let derivedKeychain = try wallet.keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
+            let derivedKeychain = try (try getPerformanceWallet()).keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
             let publicKey = try derivedKeychain.publicKey().toRawKey()
             let keyHash = try publicKey.hash()
             let credential = try keyHash.toCredential()
@@ -291,7 +290,7 @@ final class AsyncPerformanceTests: XCTestCase {
         // Create credentials for testing
         var credentials = [Credential]()
         for i in 0..<count {
-            let derivedKeychain = try await wallet.keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
+            let derivedKeychain = try await (try getPerformanceWallet()).keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
             let publicKey = try await derivedKeychain.publicKey().toRawKey()
             let keyHash = try publicKey.hash()
             let credential = try keyHash.toCredential()
@@ -338,7 +337,7 @@ final class AsyncPerformanceTests: XCTestCase {
         let count = 500
         var utxos = [UTXO]()
         
-        let address = try wallet.getAddress(account: 0, index: 0)
+        let address = try (try getPerformanceWallet()).getAddress(account: 0, index: 0)
         let value = Value(coin: 5000000)
         
         for i in 0..<count {
@@ -380,7 +379,7 @@ final class AsyncPerformanceTests: XCTestCase {
         let count = 500
         var utxos = [UTXO]()
         
-        let address = try await wallet.getAddress(account: 0, index: 0)
+        let address = try await (try getPerformanceWallet()).getAddress(account: 0, index: 0)
         let value = Value(coin: 5000000)
         
         for i in 0..<count {
@@ -438,7 +437,7 @@ final class AsyncPerformanceTests: XCTestCase {
         var publicKeys = [PublicKey]()
         
         for i in 0..<count {
-            let derivedKeychain = try wallet.keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
+            let derivedKeychain = try (try getPerformanceWallet()).keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
             let publicKey = try derivedKeychain.publicKey().toRawKey()
             publicKeys.append(publicKey)
         }
@@ -471,7 +470,7 @@ final class AsyncPerformanceTests: XCTestCase {
         var publicKeys = [PublicKey]()
         
         for i in 0..<count {
-            let derivedKeychain = try await wallet.keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
+            let derivedKeychain = try await (try getPerformanceWallet()).keychain.derive(path: "m/1852'/1815'/0'/0/\(i)")
             let publicKey = try await derivedKeychain.publicKey().toRawKey()
             publicKeys.append(publicKey)
         }
@@ -734,7 +733,7 @@ final class AsyncPerformanceTests: XCTestCase {
     /// Benchmarks asynchronous transaction batch serialization
     func testTransactionToHexPerformance() async throws {
         let count = 20
-        let address = try await wallet.getAddress(account: 0, index: 0)
+        let address = try await (try getPerformanceWallet()).getAddress(account: 0, index: 0)
         let utxo = UTXO(
             txHash: "fd656fb1f4cf6fbbc36f2705568a4d3b7a970ec0b39f80cc81e1293626b77316",
             index: 0,
@@ -746,8 +745,8 @@ final class AsyncPerformanceTests: XCTestCase {
         try await builder.addInputs(from: [utxo])
         try builder.addOutput(address: address, value: Value(coin: 10_000_000))
         let body = try await builder.build(changeAddress: address)
-        let keychain = try Keychain(mnemonic: Mnemonic(phrase: testMnemonic))
-        let transaction = try await wallet.sign(transactionBody: body, keychain: keychain)
+        let keychain = try Keychain(mnemonic: Mnemonic(phrase: WalletTests.testMnemonic))
+        let transaction = try await (try getPerformanceWallet()).sign(transactionBody: body, keychain: keychain)
         
         let transactions = Array(repeating: transaction, count: count)
         
@@ -769,7 +768,7 @@ final class AsyncPerformanceTests: XCTestCase {
     /// Benchmarks asynchronous transaction batch parsing
     func testTransactionFromHexPerformance() async throws {
         let count: Int = 20
-        let address: Address = try await wallet.getAddress(account: 0, index: 0)
+        let address: Address = try await (try getPerformanceWallet()).getAddress(account: 0, index: 0)
         let utxo: UTXO = UTXO(
             txHash: "fd656fb1f4cf6fbbc36f2705568a4d3b7a970ec0b39f80cc81e1293626b77316",
             index: 0,
@@ -781,8 +780,8 @@ final class AsyncPerformanceTests: XCTestCase {
         try await builder.addInputs(from: [utxo])
         try builder.addOutput(address: address, value: Value(coin: 10_000_000))
         let body: TransactionBody = try await builder.build(changeAddress: address)
-        let keychain: Keychain = try Keychain(mnemonic: Mnemonic(phrase: testMnemonic))
-        let transaction: Transaction = try await wallet.sign(transactionBody: body, keychain: keychain)
+        let keychain: Keychain = try Keychain(mnemonic: Mnemonic(phrase: WalletTests.testMnemonic))
+        let transaction: Transaction = try await (try getPerformanceWallet()).sign(transactionBody: body, keychain: keychain)
         let hex: String = try transaction.toHex()
         
         let hexStrings: [String] = Array(repeating: hex, count: count)
@@ -801,5 +800,33 @@ final class AsyncPerformanceTests: XCTestCase {
         
         XCTAssertEqual(results.count, count)
     }
-}
 
+    func testStressRustInterop() throws {
+        let words = "art forum devote street sure rather head chuckle guard poverty release quote oak craft enemy"
+        let mnemonic = Mnemonic(phrase: words)
+        let wallet = try Wallet(mnemonic: mnemonic)
+        let address = try wallet.getAddress()
+        
+        let utxo = UTXO(
+            txHash: "7233486deda2a6c5258a1c758e48a4e6adf5dd936e448c58819afb97f73e2c65",
+            index: 0,
+            value: Value(coin: 20_000_000),
+            address: address
+        )
+        
+        let builder = try TransactionBuilder()
+        try builder.addInputs(from: [utxo])
+        try builder.addOutput(address: address, value: Value(coin: 10_000_000))
+        
+        let body = try builder.build(changeAddress: address)
+        let keychain = try Keychain(mnemonic: mnemonic)
+        let transaction = try wallet.sign(transactionBody: body, keychain: keychain)
+        let txHex = try transaction.toHex()
+        
+        for _ in 0..<100 {
+            let txn = try Transaction.fromHex(txHex)
+            _ = try txn.hash()
+            _ = try txn.toHex()
+        }
+    }
+}

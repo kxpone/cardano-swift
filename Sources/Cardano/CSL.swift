@@ -11,7 +11,7 @@ import Foundation
 import CCardano
 
 /// Errors thrown by the Cardano SDK, often wrapping internal results from the Rust core.
-public enum CardanoError: Error, LocalizedError {
+public enum CardanoError: Error, LocalizedError, Equatable {
     /// An error returned directly from the Cardano Serialization Library (Rust).
     case cslError(String)
     /// Indicates that the provided derivation path is malformed.

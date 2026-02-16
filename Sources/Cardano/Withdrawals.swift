@@ -26,6 +26,11 @@ public class Withdrawals {
         var p = pointer
         csl_bridge_rptr_free(&p)
     }
+
+    /// Returns the number of withdrawals in the collection.
+    public func len() throws -> Int {
+        Int(try CSL.call { csl_bridge_withdrawals_len(pointer, $0, $1) })
+    }
     
     public func insert(rewardAddress: Address, amount: BigNum) throws {
         // We need to convert the Address to RewardAddress first if the bridge requires it
