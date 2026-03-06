@@ -71,11 +71,13 @@ The SDK features an **Auto-Bootstrap** system:
 
 While **iOS** and **macOS** are supported on the stable Rust toolchain, **tvOS** and **watchOS** targets are currently Tier 2/3 and require the **nightly** toolchain. 
 
-## 📚 Documentation
+## 📚 Documentation (Swift-DocC)
 
 Detailed documentation for `cardano-swift` is bundled directly with the package and integrated into Xcode.
 
-### Documentation Structure
+Web version could be found [here](https://kxpone.github.io/cardano-swift/documentation/cardano/)
+
+### Extra Documentation
 
 The documentation is organized into three main areas:
 
