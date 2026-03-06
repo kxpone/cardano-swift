@@ -1,8 +1,9 @@
 # Cardano Swift (Universal)
 
 [![Swift CI](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml/badge.svg)](https://github.com/kxpone/cardano-swift/actions/workflows/swift.yml)
-[![Coverage](https://img.shields.io/badge/Coverage-93.31%25-brightgreen.svg)](Sources/Cardano/Cardano.docc/Articles/Coverage.md)
-[![Swift Version](https://img.shields.io/badge/Swift-5.3+-orange.svg)](https://swift.org)
+[![Documentation](https://img.shields.io/badge/Documentation-Swift--DocC-orange.svg)](https://kxpone.github.io/cardano-swift/documentation/cardano/)
+[![Coverage](https://img.shields.io/badge/Coverage-93.31%25-brightgreen.svg)](https://kxpone.github.io/cardano-swift/documentation/cardano/coverage)
+[![Swift Version](https://img.shields.io/badge/Swift-5.6+-orange.svg)](https://swift.org)
 [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20macOS%20%7C%20tvOS%20%7C%20watchOS%20%7C%20Linux-blue.svg)](https://github.com/kxpone/cardano-swift)
 [![SPM Compatible](https://img.shields.io/badge/SPM-compatible-brightgreen.svg)](https://swift.org/package-manager/)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
@@ -70,11 +71,13 @@ The SDK features an **Auto-Bootstrap** system:
 
 While **iOS** and **macOS** are supported on the stable Rust toolchain, **tvOS** and **watchOS** targets are currently Tier 2/3 and require the **nightly** toolchain. 
 
-## 📚 Documentation
+## 📚 Documentation (Swift-DocC)
 
 Detailed documentation for `cardano-swift` is bundled directly with the package and integrated into Xcode.
 
-### Documentation Structure
+Web version could be found [here](https://kxpone.github.io/cardano-swift/documentation/cardano/)
+
+### Extra Documentation
 
 The documentation is organized into three main areas:
 

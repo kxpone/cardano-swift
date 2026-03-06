@@ -2,9 +2,9 @@ name: Swift CI
 
 on:
   push:
-    branches: [ develop, main, tests-targets ]
+    branches: [ develop, main ]
   pull_request:
-    branches: [ develop, main, tests-targets ]
+    branches: [ develop, main ]
 
 jobs:
   linux:
